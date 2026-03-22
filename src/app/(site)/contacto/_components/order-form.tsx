@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { pt } from "date-fns/locale";
 
@@ -59,6 +59,7 @@ export function OrderForm({
   const [data, setData] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const honeypotRef = useRef<HTMLInputElement>(null);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -101,7 +102,7 @@ export function OrderForm({
     const res = await fetch("/api/encomenda", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, items, data: dataStr, website: "" }),
+      body: JSON.stringify({ ...form, items, data: dataStr, website: honeypotRef.current?.value ?? "" }),
     });
 
     if (res.ok) {
@@ -119,7 +120,7 @@ export function OrderForm({
       {/* Honeypot — hidden from real users, bots fill it */}
       <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", overflow: "hidden" }}>
         <label htmlFor="website">Website</label>
-        <input type="text" id="website" name="website" tabIndex={-1} autoComplete="off" />
+        <input type="text" id="website" name="website" tabIndex={-1} autoComplete="off" ref={honeypotRef} />
       </div>
 
       {/* Nome */}
