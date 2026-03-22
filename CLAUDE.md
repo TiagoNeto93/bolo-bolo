@@ -53,13 +53,17 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 
 ### Workflow per slice
 1. **Define** — brief description of what the slice does and what "done" looks like
-2. **Build** — schema → query → page/component → wire up
-3. **Verify** — build passes, feature works end-to-end
-4. **Commit** — clean commit per slice, descriptive message
-5. **Update tracker** — mark slice as done below, move to next
+2. **Branch** — create `slice/N-short-name` off `main` before writing any code
+3. **Build** — schema → query → page/component → wire up
+4. **Verify** — build passes, feature works end-to-end
+5. **Commit** — clean commit on the slice branch, descriptive message
+6. **Merge & push** — merge to `main`, push both branches
+7. **Update tracker** — mark slice as done below, move to next
 
 ### Rules
+- Every slice gets its own branch: `slice/N-short-name` (e.g. `slice/2-produto-catalogue`)
 - Never start a new slice until the current one is verified and committed
+- Never commit slice work directly to `main` — always branch first
 - If a slice reveals missing work, add it as a new slice — don't scope-creep the current one
 - Each session should start by reading this file and picking up where we left off
 - When we discover a reusable pattern or convention during a slice, add it to "Conventions" below
@@ -70,7 +74,7 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 |---|-------|--------|
 | 0 | Project skeleton + design system | DONE |
 | 1 | Sanity Studio + core schemas | DONE |
-| 2 | Produto catalogue page | TODO |
+| 2 | Produto catalogue page | IN PROGRESS |
 | 3 | Produto detail page | TODO |
 | 4 | Order enquiry form + email notification | TODO |
 | 5 | Blocked dates in date picker | TODO |
