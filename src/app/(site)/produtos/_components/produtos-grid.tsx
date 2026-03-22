@@ -87,7 +87,7 @@ export function ProdutosGrid({ products }: { products: Product[] }) {
         </div>
       ) : (
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filtered.map((product) => (
+          {filtered.map((product, i) => (
             <Link
               key={product._id}
               href={`/produtos/${product.slug}`}
@@ -100,6 +100,7 @@ export function ProdutosGrid({ products }: { products: Product[] }) {
                     alt={product.name}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    priority={i === 0}
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
