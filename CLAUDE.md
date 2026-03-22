@@ -76,12 +76,45 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 0 | Project skeleton + design system | DONE |
 | 1 | Sanity Studio + core schemas | DONE |
 | 2 | Produto catalogue page | DONE |
-| 3 | Produto detail page | TODO |
-| 4 | Order enquiry form + email notification | TODO |
+| 3 | Produto detail page | DONE |
+| 4 | Order enquiry form + email notification | DONE |
 | 5 | Blocked dates in date picker | TODO |
 | 6 | Sobre + Galeria pages | TODO |
 | 7 | Entrega page + homepage featured cakes | TODO |
 | 8 | SEO, metadata, OG images, performance polish | TODO |
+| 9 | Order management — persist enquiries in Sanity | TODO |
+
+### Slice 9 detail — Order management
+
+**Goal:** Every enquiry submitted via `/contacto` is persisted as an `encomenda` document in Sanity, giving the baker a full order history she can view and manage in the Studio.
+
+**Schema — `encomenda` document:**
+- `referencia` (string, read-only) — auto-generated reference number, format `BB-YYYYMMDD-XXXX` (e.g. `BB-20260322-4F2A`). Generated server-side on submission, stored and shown to the customer on the confirmation page and in the baker's notification email.
+- `estado` (string, dropdown) — `pendente` (default) | `confirmada` | `em_preparacao` | `entregue` | `cancelada`
+- `nome`, `contacto` (string) — customer name and email/phone
+- `data` (date) — requested delivery date
+- `items` (array of objects) — `{ produto: string, tamanho: string }` — mirrors the form submission
+- `notas` (text) — special requests
+- `criadoEm` (datetime) — set automatically on creation (`_createdAt` can serve this)
+
+**API route changes (`/api/encomenda`):**
+- Generate `referencia` before sending email
+- Write the `encomenda` document to Sanity using the Editor API token (`SANITY_API_TOKEN` env var, already configured for Slice 1) via `client.create()`
+- Include `referencia` in the baker's notification email subject and body
+- Return `referencia` in the API response
+
+**Confirmation page:**
+- Display the `referencia` to the customer: "A tua referência é BB-20260322-4F2A — guarda-a para qualquer questão."
+
+**Studio UX:**
+- Add `encomenda` to `sanity.config.ts` structure, listed under a new "Encomendas" section above the divider
+- Default sort: most recent first
+- Preview shows: referencia + estado + nome + data
+- The baker cannot create encomendas manually — only the API creates them (`__experimental_actions: ["update", "publish"]`)
+
+**Constraints:**
+- The Sanity write must not block the email — if Sanity write fails, log the error but still send the email and return success to the user
+- Do not expose customer data beyond what is already in the email
 
 ---
 
