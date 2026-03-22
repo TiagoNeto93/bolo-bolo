@@ -74,7 +74,7 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 |---|-------|--------|
 | 0 | Project skeleton + design system | DONE |
 | 1 | Sanity Studio + core schemas | DONE |
-| 2 | Produto catalogue page | IN PROGRESS |
+| 2 | Produto catalogue page | DONE |
 | 3 | Produto detail page | TODO |
 | 4 | Order enquiry form + email notification | TODO |
 | 5 | Blocked dates in date picker | TODO |
