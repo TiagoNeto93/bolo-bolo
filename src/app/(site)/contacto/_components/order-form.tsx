@@ -106,7 +106,9 @@ export function OrderForm() {
           className="w-full px-4 py-3 rounded-xl border border-parchment bg-white text-espresso focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition"
         />
         <p className="mt-1.5 text-xs text-warm-brown opacity-70">
-          Confirmarei disponibilidade via WhatsApp.
+          {form.data
+            ? `Data selecionada: ${form.data.split("-").reverse().join("/")}`
+            : "Confirmarei disponibilidade via WhatsApp."}
         </p>
       </div>
 

@@ -6,6 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { nome, contacto, produto, data, notas } = body;
+  const dataFormatada = data ? data.split("-").reverse().join("/") : null;
 
   if (!nome || !contacto) {
     return NextResponse.json({ error: "Campos obrigatórios em falta." }, { status: 400 });
@@ -34,10 +35,10 @@ export async function POST(req: NextRequest) {
             <td style="padding: 8px 0; color: #5C3D2E; font-size: 13px; vertical-align: top;">Bolo</td>
             <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${produto}</td>
           </tr>` : ""}
-          ${data ? `
+          ${dataFormatada ? `
           <tr>
             <td style="padding: 8px 0; color: #5C3D2E; font-size: 13px; vertical-align: top;">Data desejada</td>
-            <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${data}</td>
+            <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${dataFormatada}</td>
           </tr>` : ""}
           ${notas ? `
           <tr>
