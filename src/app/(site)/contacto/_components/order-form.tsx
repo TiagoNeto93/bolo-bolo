@@ -2,6 +2,11 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import DatePicker, { registerLocale } from "react-datepicker";
+import { pt } from "date-fns/locale";
+import "react-datepicker/dist/react-datepicker.css";
+
+registerLocale("pt", pt);
 
 export function OrderForm() {
   const searchParams = useSearchParams();
@@ -11,9 +16,9 @@ export function OrderForm() {
     nome: "",
     contacto: "",
     produto: searchParams.get("produto") ?? "",
-    data: "",
     notas: "",
   });
+  const [data, setData] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -28,10 +33,14 @@ export function OrderForm() {
     setLoading(true);
     setError("");
 
+    const dataStr = data
+      ? `${String(data.getDate()).padStart(2, "0")}/${String(data.getMonth() + 1).padStart(2, "0")}/${data.getFullYear()}`
+      : "";
+
     const res = await fetch("/api/encomenda", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, data: dataStr }),
     });
 
     if (res.ok) {
@@ -97,18 +106,20 @@ export function OrderForm() {
         <label className="block text-sm font-medium text-espresso mb-1.5">
           Data desejada
         </label>
-        <input
-          type="date"
-          name="data"
-          value={form.data}
-          onChange={handleChange}
-          min={new Date().toISOString().split("T")[0]}
+        <DatePicker
+          locale="pt"
+          selected={data}
+          onChange={(date: Date | null) => setData(date)}
+          dateFormat="dd/MM/yyyy"
+          minDate={new Date()}
+          placeholderText="dd/mm/aaaa"
           className="w-full px-4 py-3 rounded-xl border border-parchment bg-white text-espresso focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition"
+          wrapperClassName="w-full"
+          calendarClassName="!font-body !rounded-xl !border-parchment !shadow-lg"
+          autoComplete="off"
         />
         <p className="mt-1.5 text-xs text-warm-brown opacity-70">
-          {form.data
-            ? `Data selecionada: ${form.data.split("-").reverse().join("/")}`
-            : "Confirmarei disponibilidade via WhatsApp."}
+          Confirmarei disponibilidade via WhatsApp.
         </p>
       </div>
 
