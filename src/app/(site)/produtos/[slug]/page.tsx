@@ -127,7 +127,7 @@ export default async function ProdutoPage({ params }: PageProps) {
             {/* CTA */}
             <div className="mt-10 flex flex-col sm:flex-row gap-4 items-start">
               <Link
-                href={`/contacto?produto=${slug}`}
+                href={`/contacto?produto=${encodeURIComponent(product.name)}`}
                 className="btn-primary"
               >
                 Fazer encomenda
