@@ -84,6 +84,10 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 8 | SEO, metadata, OG images, performance polish | DONE |
 | 9 | Order management — persist enquiries in Sanity | DONE |
 | 10 | Rate limiting + honeypot spam protection | DONE |
+| 11 | Vercel Analytics | TODO |
+| 12 | Seasonal / featured specials | TODO |
+| 13 | Order status lookup | TODO |
+| 14 | Availability auto-block | TODO |
 
 ### Slice 9 detail — Order management
 
@@ -116,6 +120,81 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 **Constraints:**
 - The Sanity write must not block the email — if Sanity write fails, log the error but still send the email and return success to the user
 - Do not expose customer data beyond what is already in the email
+
+### Slice 11 detail — Vercel Analytics
+
+**Goal:** Enable Vercel Analytics to track page views and understand traffic (especially local search in Braga).
+
+- Install `@vercel/analytics` package
+- Add `<Analytics />` component to root layout (`src/app/layout.tsx`)
+- Enable in Vercel project dashboard if not already active
+- No configuration needed beyond that — Vercel handles the rest
+
+### Slice 12 detail — Seasonal / featured specials
+
+**Goal:** Baker can mark any produto as a seasonal special in Sanity; these appear on the homepage with a badge (e.g. "Especial de Páscoa").
+
+**Schema changes (`produto`):**
+- Add `destaque` (boolean, default false) — marks as featured/special
+- Add `etiqueta` (string, optional) — badge label, e.g. "Especial de Páscoa", "Edição Limitada"
+
+**Homepage:**
+- Query products where `destaque == true`
+- Render a "Especiais da Época" section above or alongside the existing featured cakes
+- Show the `etiqueta` as a badge on the card (styled in terracotta or honey)
+- Section only renders if at least one destaque product exists (no empty section)
+
+**Constraints:**
+- Baker controls this entirely from Studio — no code changes needed to add/remove specials
+- Badge label is optional; if absent, show a generic "Destaque" badge
+
+### Slice 13 detail — Order status lookup
+
+**Goal:** Customer can enter their `referencia` (e.g. `BB-20260322-4F2A`) on a public page and see the current `estado` of their order — no auth needed.
+
+**New page `/encomenda/[referencia]`:**
+- Input form on `/encomenda` — customer types their referencia, submits
+- Redirects to `/encomenda/[referencia]` which queries Sanity for the matching `encomenda` document
+- Display: referencia, estado (as a human-readable label + visual indicator), data, nome
+- Do NOT display: contacto, notas, items detail — keep it minimal
+- If not found: friendly error message ("Não encontrámos nenhuma encomenda com essa referência.")
+
+**Estado labels (PT):**
+- `pendente` → "A aguardar confirmação"
+- `confirmada` → "Confirmada"
+- `em_preparacao` → "Em preparação"
+- `entregue` → "Entregue"
+- `cancelada` → "Cancelada"
+
+**Constraints:**
+- Query uses the public (read-only) Sanity client — no API token needed
+- Reference the confirmation page copy to prompt customers to use this page
+
+### Slice 14 detail — Availability auto-block
+
+**Goal:** When an `encomenda` is created, automatically block the delivery date if the number of confirmed orders for that date reaches a configurable maximum — preventing overbooking without manual intervention.
+
+**New Sanity field (`deliveryInfo` singleton):**
+- `maxEncomendas` (number, default 2) — baker-configurable max orders per day
+
+**API route changes (`/api/encomenda`):**
+- After writing the new encomenda, query Sanity for how many non-cancelled encomendas exist for that date
+- If count >= `maxEncomendas`, add the date to `datasBloqueadas` in the `deliveryInfo` singleton via `client.patch().setIfMissing().insert()`
+- This write is best-effort — log errors but do not fail the request
+
+**Constraints:**
+- Only count `estado != "cancelada"` orders when checking capacity
+- Do not unblock dates automatically when an order is cancelled — baker handles that manually in Studio (avoids complexity)
+- `maxEncomendas` must be visible and editable in Studio under the Entrega section
+
+---
+
+## Backlog (future slices, not yet scheduled)
+
+| Feature | Notes |
+|---------|-------|
+| Testimonials section | Baker adds quotes in Sanity; displayed on homepage. Simple schema + component. |
+| FAQ page (`/faq`) | Allergens, lead time, delivery, payment questions. Sanity-managed. Reduces WhatsApp noise. |
 
 ---
 
