@@ -7,16 +7,33 @@ import { pt } from "date-fns/locale";
 
 registerLocale("pt", pt);
 
-export function OrderForm() {
+type Size = { label: string; price: number };
+
+type Product = {
+  _id: string;
+  name: string;
+  slug: string;
+  sizes?: Size[];
+};
+
+type OrderItem = {
+  produto: string;
+  tamanho: string;
+};
+
+const inputClass =
+  "w-full px-4 py-3 rounded-xl border border-parchment bg-white text-espresso placeholder-warm-brown/40 focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition";
+
+export function OrderForm({ products }: { products: Product[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [form, setForm] = useState({
-    nome: "",
-    contacto: "",
-    produto: searchParams.get("produto") ?? "",
-    notas: "",
-  });
+  const preselected = searchParams.get("produto") ?? "";
+
+  const [form, setForm] = useState({ nome: "", contacto: "", notas: "" });
+  const [items, setItems] = useState<OrderItem[]>([
+    { produto: preselected, tamanho: "" },
+  ]);
   const [data, setData] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -25,6 +42,29 @@ export function OrderForm() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  function handleItemChange(index: number, field: keyof OrderItem, value: string) {
+    setItems((prev) =>
+      prev.map((item, i) => {
+        if (i !== index) return item;
+        // Reset size when product changes
+        if (field === "produto") return { produto: value, tamanho: "" };
+        return { ...item, [field]: value };
+      })
+    );
+  }
+
+  function addItem() {
+    setItems((prev) => [...prev, { produto: "", tamanho: "" }]);
+  }
+
+  function removeItem(index: number) {
+    setItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function getSizes(productName: string): Size[] {
+    return products.find((p) => p.name === productName)?.sizes ?? [];
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -39,14 +79,14 @@ export function OrderForm() {
     const res = await fetch("/api/encomenda", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, data: dataStr }),
+      body: JSON.stringify({ ...form, items, data: dataStr }),
     });
 
     if (res.ok) {
       router.push("/contacto/confirmacao");
     } else {
-      const data = await res.json();
-      setError(data.error ?? "Algo correu mal. Tenta outra vez.");
+      const json = await res.json();
+      setError(json.error ?? "Algo correu mal. Tenta outra vez.");
       setLoading(false);
     }
   }
@@ -65,7 +105,7 @@ export function OrderForm() {
           value={form.nome}
           onChange={handleChange}
           placeholder="Ex: Ana Silva"
-          className="w-full px-4 py-3 rounded-xl border border-parchment bg-white text-espresso placeholder-warm-brown/40 focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition"
+          className={inputClass}
         />
       </div>
 
@@ -81,23 +121,84 @@ export function OrderForm() {
           value={form.contacto}
           onChange={handleChange}
           placeholder="Ex: ana@email.com ou +351 912 345 678"
-          className="w-full px-4 py-3 rounded-xl border border-parchment bg-white text-espresso placeholder-warm-brown/40 focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition"
+          className={inputClass}
         />
       </div>
 
-      {/* Bolo */}
+      {/* Cake items */}
       <div>
-        <label className="block text-sm font-medium text-espresso mb-1.5">
-          Que bolo queres?
+        <label className="block text-sm font-medium text-espresso mb-3">
+          Que bolos queres? <span className="text-terracotta">*</span>
         </label>
-        <input
-          type="text"
-          name="produto"
-          value={form.produto}
-          onChange={handleChange}
-          placeholder="Ex: Cheesecake de morango, Bolo de chocolate..."
-          className="w-full px-4 py-3 rounded-xl border border-parchment bg-white text-espresso placeholder-warm-brown/40 focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition"
-        />
+        <div className="flex flex-col gap-3">
+          {items.map((item, i) => {
+            const sizes = getSizes(item.produto);
+            return (
+              <div
+                key={i}
+                className="flex flex-col sm:flex-row gap-2 items-start p-4 rounded-xl bg-white border border-parchment"
+              >
+                <div className="flex flex-col sm:flex-row gap-2 flex-1 w-full">
+                  {/* Product select */}
+                  <select
+                    required
+                    value={item.produto}
+                    onChange={(e) => handleItemChange(i, "produto", e.target.value)}
+                    className="flex-1 px-4 py-2.5 rounded-lg border border-parchment bg-white text-espresso focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition"
+                  >
+                    <option value="">Escolhe um bolo…</option>
+                    {products.map((p) => (
+                      <option key={p._id} value={p.name}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Size select — only if product has sizes */}
+                  {sizes.length > 0 && (
+                    <select
+                      value={item.tamanho}
+                      onChange={(e) => handleItemChange(i, "tamanho", e.target.value)}
+                      className="flex-1 px-4 py-2.5 rounded-lg border border-parchment bg-white text-espresso focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition"
+                    >
+                      <option value="">Tamanho (opcional)</option>
+                      {sizes.map((s) => (
+                        <option key={s.label} value={s.label}>
+                          {s.label} — €{s.price}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                {/* Remove button */}
+                {items.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeItem(i)}
+                    className="shrink-0 p-2 text-warm-brown hover:text-terracotta transition-colors cursor-pointer"
+                    aria-label="Remover bolo"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={addItem}
+          className="mt-3 inline-flex items-center gap-1.5 text-sm text-terracotta hover:text-terracotta-dark font-medium transition-colors cursor-pointer"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Adicionar outro bolo
+        </button>
       </div>
 
       {/* Data */}
@@ -112,7 +213,7 @@ export function OrderForm() {
           dateFormat="dd/MM/yyyy"
           minDate={new Date()}
           placeholderText="dd/mm/aaaa"
-          className="w-full px-4 py-3 rounded-xl border border-parchment bg-white text-espresso focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition"
+          className={inputClass}
           wrapperClassName="w-full"
           calendarClassName="!font-body !rounded-xl !border-parchment !shadow-lg"
           autoComplete="off"
@@ -132,8 +233,8 @@ export function OrderForm() {
           value={form.notas}
           onChange={handleChange}
           rows={4}
-          placeholder="Ex: sem glúten, decoração especial, tamanho, sabores..."
-          className="w-full px-4 py-3 rounded-xl border border-parchment bg-white text-espresso placeholder-warm-brown/40 focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition resize-none"
+          placeholder="Ex: sem glúten, decoração especial, sabores…"
+          className={`${inputClass} resize-none`}
         />
       </div>
 

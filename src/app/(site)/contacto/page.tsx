@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { OrderForm } from "./_components/order-form";
+import { getProducts } from "@/lib/sanity/queries";
 
 export const metadata: Metadata = {
   title: "Encomendas | Bolo-Bolo",
   description: "Queres encomendar um bolo? Fala comigo!",
 };
 
-export default function ContactoPage() {
+export default async function ContactoPage() {
+  const products = await getProducts();
+
   return (
     <main className="flex-1 flex flex-col">
       <div className="px-6 py-16 max-w-2xl mx-auto w-full">
@@ -24,7 +27,7 @@ export default function ContactoPage() {
           </p>
         </div>
         <Suspense>
-          <OrderForm />
+          <OrderForm products={products} />
         </Suspense>
       </div>
     </main>
