@@ -1,22 +1,19 @@
 import type { Metadata } from "next";
+import { getProducts } from "@/lib/sanity/queries";
+import { ProdutosGrid } from "./_components/produtos-grid";
 
 export const metadata: Metadata = {
-  title: "Bolos",
-  description: "Cheesecakes, bolos de chocolate, bolos de cenoura e mais.",
+  title: "Os Meus Bolos | Bolo-Bolo",
+  description:
+    "Cheesecakes, bolos de chocolate, bolos de cenoura — feitos em casa, com amor.",
 };
 
-export default function ProdutosPage() {
+export default async function ProdutosPage() {
+  const products = await getProducts();
+
   return (
-    <main className="flex flex-1 flex-col px-6 py-24 max-w-5xl mx-auto">
-      <h1 className="font-heading text-4xl md:text-5xl text-espresso">
-        Os Meus Bolos
-      </h1>
-      <p className="mt-6 text-lg text-warm-brown">
-        {/* Product grid will be populated from Sanity */}
-      </p>
-      <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {/* Product cards go here */}
-      </div>
+    <main className="flex-1 flex flex-col">
+      <ProdutosGrid products={products} />
     </main>
   );
 }
