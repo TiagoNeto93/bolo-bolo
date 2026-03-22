@@ -81,7 +81,7 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 5 | Blocked dates in date picker | DONE |
 | 6 | Sobre + Galeria pages | DONE |
 | 7 | Entrega page + homepage featured cakes | DONE |
-| 8 | SEO, metadata, OG images, performance polish | TODO |
+| 8 | SEO, metadata, OG images, performance polish | DONE |
 | 9 | Order management — persist enquiries in Sanity | TODO |
 
 ### Slice 9 detail — Order management
@@ -163,6 +163,20 @@ Code patterns and decisions we've committed to. Grows as we build.
 - `studioViewport` from `next-sanity` needs `as Viewport` cast for Next.js 16 compatibility
 - Queries always resolve slug as a string: `"slug": slug.current`
 - Blocked dates query returns a flat array of date strings: `[...].date`
+- `@sanity/image-url`: use named export `import { createImageUrlBuilder as imageUrlBuilder } from "@sanity/image-url"` — the default export is deprecated and logs a warning
+- `cdn.sanity.io` must be listed in `next.config.ts` under `images.remotePatterns` — `next/image` will block remote images otherwise
+- Pages that read frequently-changing Sanity data (e.g. blocked dates, delivery zones) must opt out of static generation: `export const dynamic = "force-dynamic"` at the top of the page file
+
+### Dates & date picker
+- Parse Sanity date strings (`YYYY-MM-DD`) manually to avoid UTC timezone day-shift: `const [y, m, d] = str.split("-").map(Number); new Date(y, m - 1, d)`
+- `react-datepicker` CSS must be imported in `globals.css` (`@import "react-datepicker/dist/react-datepicker.css"`), NOT inside a client component — Turbopack does not process CSS imports in client components at dev time, causing the calendar popup to appear unstyled/invisible
+- `minDate` passed to `react-datepicker` must be normalised to midnight before adding lead days: `minDate.setHours(0, 0, 0, 0); minDate.setDate(minDate.getDate() + leadDays)` — skipping the midnight normalisation allows selecting today or even past times depending on when the page loads
+- Numeric `leadTime` fields in Sanity should be `type: "number"`, not `type: "string"`, so they can be used directly in date arithmetic
+
+### OG images & SEO
+- OG image files (`opengraph-image.tsx`) in dynamic routes that fetch from Sanity must NOT use `export const runtime = "edge"` — the Sanity client requires the Node.js runtime; remove the export or set it to `"nodejs"`
+- The direct URL `/route/opengraph-image` does NOT work for dynamic routes — Next.js serves OG images at an internal hashed URL. The `og:image` meta tag in the page `<head>` is correctly populated; verify with `curl -s <page-url> | grep og:image` rather than visiting the image URL directly
+- `NEXT_PUBLIC_SITE_URL` must be set in Vercel environment variables to the production domain (e.g. `https://bolo-bolo.pt`) for canonical URLs, sitemap, robots, and OG `metadataBase` to resolve correctly
 
 ### Copy
 - All UI text in Portuguese, informal "tu" register

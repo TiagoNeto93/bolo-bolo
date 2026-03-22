@@ -20,12 +20,38 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://bolo-bolo.pt";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     template: "%s | Bolo-Bolo",
     default: "Bolo-Bolo | Bolos Caseiros em Braga",
   },
-  description: "Bolos caseiros feitos com carinho, la em casa, em Braga.",
+  description:
+    "Bolos caseiros feitos com carinho em Braga. Cheesecakes, bolos de chocolate e bolos de cenoura — encomenda o teu hoje.",
+  keywords: [
+    "bolos caseiros Braga",
+    "encomenda bolos Braga",
+    "cheesecake Braga",
+    "bolo de aniversário Braga",
+    "padaria caseira Braga",
+    "bolos artesanais",
+  ],
+  openGraph: {
+    type: "website",
+    locale: "pt_PT",
+    siteName: "Bolo-Bolo",
+    title: "Bolo-Bolo | Bolos Caseiros em Braga",
+    description:
+      "Cheesecakes, bolos de chocolate e bolos de cenoura — feitos em casa, com amor.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bolo-Bolo | Bolos Caseiros em Braga",
+    description:
+      "Cheesecakes, bolos de chocolate e bolos de cenoura — feitos em casa, com amor.",
+  },
 };
 
 export default function RootLayout({
