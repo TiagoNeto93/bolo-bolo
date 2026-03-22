@@ -82,7 +82,8 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 6 | Sobre + Galeria pages | DONE |
 | 7 | Entrega page + homepage featured cakes | DONE |
 | 8 | SEO, metadata, OG images, performance polish | DONE |
-| 9 | Order management — persist enquiries in Sanity | TODO |
+| 9 | Order management — persist enquiries in Sanity | DONE |
+| 10 | Rate limiting + honeypot spam protection | DONE |
 
 ### Slice 9 detail — Order management
 
@@ -166,6 +167,8 @@ Code patterns and decisions we've committed to. Grows as we build.
 - `@sanity/image-url`: use named export `import { createImageUrlBuilder as imageUrlBuilder } from "@sanity/image-url"` — the default export is deprecated and logs a warning
 - `cdn.sanity.io` must be listed in `next.config.ts` under `images.remotePatterns` — `next/image` will block remote images otherwise
 - Pages that read frequently-changing Sanity data (e.g. blocked dates, delivery zones) must opt out of static generation: `export const dynamic = "force-dynamic"` at the top of the page file
+- Array items written via the API must include a `_key` property (unique string, e.g. `Math.random().toString(36).slice(2, 10)`) — Sanity Studio shows a "Missing keys" error otherwise
+- `canHandleIntent((intent) => intent !== "create")` on a `documentTypeList` hides the Create button for non-admin users; project owners always retain full access regardless
 
 ### Dates & date picker
 - Parse Sanity date strings (`YYYY-MM-DD`) manually to avoid UTC timezone day-shift: `const [y, m, d] = str.split("-").map(Number); new Date(y, m - 1, d)`

@@ -11,6 +11,8 @@
   "dependencies": {
     "@sanity/image-url": "^2.0.3",
     "@sanity/vision": "^5.17.1",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "date-fns": "^4.1.0",
     "next": "16.2.1",
     "next-sanity": "^12.1.3",
