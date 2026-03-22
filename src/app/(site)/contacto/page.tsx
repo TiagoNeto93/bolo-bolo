@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import { OrderForm } from "./_components/order-form";
-import { getProducts, getBlockedDates } from "@/lib/sanity/queries";
+import { getProducts, getBlockedDates, getDeliveryInfo } from "@/lib/sanity/queries";
 
 export const metadata: Metadata = {
   title: "Encomendas | Bolo-Bolo",
@@ -11,10 +11,12 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactoPage() {
-  const [products, blockedDates] = await Promise.all([
+  const [products, blockedDates, deliveryInfo] = await Promise.all([
     getProducts(),
     getBlockedDates(),
+    getDeliveryInfo(),
   ]);
+  const zones: { zone: string; price: number }[] = deliveryInfo?.zones ?? [];
 
   return (
     <main className="flex-1 flex flex-col">
@@ -32,7 +34,7 @@ export default async function ContactoPage() {
           </p>
         </div>
         <Suspense>
-          <OrderForm products={products} blockedDates={blockedDates} />
+          <OrderForm products={products} blockedDates={blockedDates} zones={zones} />
         </Suspense>
       </div>
     </main>

@@ -29,12 +29,16 @@ function parseSanityDate(dateStr: string): Date {
   return new Date(year, month - 1, day);
 }
 
+type Zone = { zone: string; price: number };
+
 export function OrderForm({
   products,
   blockedDates,
+  zones,
 }: {
   products: Product[];
   blockedDates: string[];
+  zones: Zone[];
 }) {
   const excludedDates = blockedDates.map(parseSanityDate);
   const searchParams = useSearchParams();
@@ -43,7 +47,7 @@ export function OrderForm({
   const preselected = searchParams.get("produto") ?? "";
   const preselectedSize = searchParams.get("tamanho") ?? "";
 
-  const [form, setForm] = useState({ nome: "", contacto: "", notas: "" });
+  const [form, setForm] = useState({ nome: "", contacto: "", zona: "", notas: "" });
   const [items, setItems] = useState<OrderItem[]>([
     { produto: preselected, tamanho: preselectedSize },
   ]);
@@ -237,6 +241,28 @@ export function OrderForm({
           Confirmarei disponibilidade via WhatsApp.
         </p>
       </div>
+
+      {/* Zona de entrega */}
+      {zones.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-espresso mb-1.5">
+            Zona de entrega
+          </label>
+          <select
+            name="zona"
+            value={form.zona}
+            onChange={(e) => setForm((prev) => ({ ...prev, zona: e.target.value }))}
+            className={inputClass}
+          >
+            <option value="">Seleciona a tua zona…</option>
+            {zones.map((z) => (
+              <option key={z.zone} value={z.zone}>
+                {z.zone} — {z.price === 0 ? "Gratuita" : `€${z.price}`}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Notas */}
       <div>
