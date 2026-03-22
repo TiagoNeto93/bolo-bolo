@@ -287,3 +287,37 @@ h1, h2, h3, h4, h5, h6 {
 .react-datepicker__navigation-icon::before {
   border-color: var(--color-warm-brown);
 }
+
+/* ─── Portable Text (About page) ─── */
+
+.prose-warm {
+  color: var(--color-warm-brown);
+  font-size: 1.125rem;
+  line-height: 1.8;
+}
+
+.prose-warm p { margin-bottom: 1.25em; }
+.prose-warm p:last-child { margin-bottom: 0; }
+
+.prose-warm strong {
+  color: var(--color-espresso);
+  font-weight: 600;
+}
+
+.prose-warm em { font-style: italic; }
+
+.prose-warm h2 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--color-espresso);
+  margin-top: 1.75em;
+  margin-bottom: 0.5em;
+}
+
+.prose-warm ul {
+  list-style: disc;
+  padding-left: 1.5em;
+  margin-bottom: 1.25em;
+}
+
+.prose-warm ul li { margin-bottom: 0.4em; }
