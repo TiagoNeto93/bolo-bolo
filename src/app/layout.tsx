@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fredoka, Playfair_Display, DM_Sans } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -64,7 +65,10 @@ export default function RootLayout({
       lang="pt"
       className={`${fredoka.variable} ${playfair.variable} ${dmSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
