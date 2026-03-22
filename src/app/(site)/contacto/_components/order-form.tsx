@@ -4,7 +4,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { pt } from "date-fns/locale";
-import "react-datepicker/dist/react-datepicker.css";
 
 registerLocale("pt", pt);
 
