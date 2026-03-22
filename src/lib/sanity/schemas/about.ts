@@ -23,4 +23,9 @@ export const about = {
       description: "A tua historia — escreve como quiseres",
     },
   ],
+  preview: {
+    prepare() {
+      return { title: "Sobre Mim" };
+    },
+  },
 };

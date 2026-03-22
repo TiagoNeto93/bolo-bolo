@@ -25,4 +25,9 @@ export const homepage = {
       description: "Ex: Faz a tua encomenda",
     },
   ],
+  preview: {
+    prepare() {
+      return { title: "Pagina Inicial" };
+    },
+  },
 };

@@ -51,4 +51,9 @@ export const deliveryInfo = {
       description: "Informacoes extras sobre entrega (horarios, restricoes, etc.)",
     },
   ],
+  preview: {
+    prepare() {
+      return { title: "Informacoes de Entrega" };
+    },
+  },
 };
