@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProductBySlug, getProducts } from "@/lib/sanity/queries";
 import { ProductGallery } from "./_components/product-gallery";
+import { ProductOrder } from "./_components/product-order";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -34,7 +35,6 @@ export default async function ProdutoPage({ params }: PageProps) {
 
   if (!product || !product.available) notFound();
 
-  const hasSizes = product.sizes?.length > 0;
   const hasFlavours = product.flavours?.length > 0;
   const hasImages = product.images?.length > 0;
 
@@ -81,30 +81,6 @@ export default async function ProdutoPage({ params }: PageProps) {
               </p>
             )}
 
-            {/* Sizes + prices */}
-            {hasSizes && (
-              <div className="mt-8">
-                <h2 className="font-heading text-xl text-espresso mb-3">
-                  Tamanhos e preços
-                </h2>
-                <div className="flex flex-col gap-2">
-                  {product.sizes.map(
-                    (size: { label: string; price: number }, i: number) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-parchment"
-                      >
-                        <span className="text-warm-brown">{size.label}</span>
-                        <span className="font-medium text-terracotta">
-                          €{size.price}
-                        </span>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Flavours */}
             {hasFlavours && (
               <div className="mt-8">
@@ -124,19 +100,11 @@ export default async function ProdutoPage({ params }: PageProps) {
               </div>
             )}
 
-            {/* CTA */}
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 items-start">
-              <Link
-                href={`/contacto?produto=${slug}`}
-                className="btn-primary"
-              >
-                Fazer encomenda
-              </Link>
-            </div>
-
-            <p className="mt-4 text-sm text-warm-brown opacity-70">
-              Confirmo disponibilidade e datas via WhatsApp.
-            </p>
+            {/* Sizes selector + CTA */}
+            <ProductOrder
+              productName={product.name}
+              sizes={product.sizes ?? []}
+            />
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "react-datepicker/dist/react-datepicker.css";
 
 /* ─── Design Tokens ─── */
 
@@ -237,4 +238,52 @@ h1, h2, h3, h4, h5, h6 {
 
 .hamburger-open .hamburger-line:nth-child(3) {
   transform: rotate(-45deg) translate(4px, -4px);
+}
+
+/* ─── Date Picker overrides ─── */
+
+.react-datepicker-popper {
+  z-index: 100;
+}
+
+.react-datepicker {
+  font-family: var(--font-body), Georgia, serif;
+  border-color: var(--color-parchment);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(59, 35, 20, 0.1);
+}
+
+.react-datepicker__header {
+  background: var(--color-parchment);
+  border-bottom-color: var(--color-parchment);
+}
+
+.react-datepicker__current-month,
+.react-datepicker__day-name {
+  color: var(--color-espresso);
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background: var(--color-terracotta);
+  border-radius: 50%;
+}
+
+.react-datepicker__day--selected:hover,
+.react-datepicker__day--keyboard-selected:hover {
+  background: var(--color-terracotta-dark);
+}
+
+.react-datepicker__day:hover {
+  border-radius: 50%;
+  background: var(--color-linen);
+}
+
+.react-datepicker__day--disabled {
+  color: var(--color-parchment);
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: var(--color-warm-brown);
 }
