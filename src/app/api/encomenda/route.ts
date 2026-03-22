@@ -1,8 +1,23 @@
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 import { writeClient } from "@/lib/sanity/write-client";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Rate limiter — only active when Upstash env vars are set
+const ratelimit =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new Ratelimit({
+        redis: new Redis({
+          url: process.env.UPSTASH_REDIS_REST_URL,
+          token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        }),
+        limiter: Ratelimit.slidingWindow(3, "1 h"),
+        prefix: "bolo-bolo:encomenda",
+      })
+    : null;
 
 type OrderItem = { produto: string; tamanho: string };
 
@@ -14,15 +29,33 @@ function generateReferencia(): string {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limiting — by IP, 3 requests per hour
+  if (ratelimit) {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous";
+    const { success } = await ratelimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Demasiados pedidos. Tenta novamente mais tarde." },
+        { status: 429 }
+      );
+    }
+  }
+
   const body = await req.json();
-  const { nome, contacto, items, data, zona, notas } = body as {
+  const { nome, contacto, items, data, zona, notas, website } = body as {
     nome: string;
     contacto: string;
     items: OrderItem[];
     data: string;
     zona: string;
     notas: string;
+    website: string; // honeypot — must be empty
   };
+
+  // Honeypot — bots fill hidden fields, humans don't
+  if (website) {
+    return NextResponse.json({ ok: true, referencia: "BB-00000000-0000" });
+  }
 
   if (!nome || !contacto) {
     return NextResponse.json({ error: "Campos obrigatórios em falta." }, { status: 400 });

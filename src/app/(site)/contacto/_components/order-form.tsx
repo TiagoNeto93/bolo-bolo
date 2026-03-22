@@ -101,7 +101,7 @@ export function OrderForm({
     const res = await fetch("/api/encomenda", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, items, data: dataStr }),
+      body: JSON.stringify({ ...form, items, data: dataStr, website: "" }),
     });
 
     if (res.ok) {
@@ -116,6 +116,12 @@ export function OrderForm({
 
   return (
     <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-6">
+      {/* Honeypot — hidden from real users, bots fill it */}
+      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", overflow: "hidden" }}>
+        <label htmlFor="website">Website</label>
+        <input type="text" id="website" name="website" tabIndex={-1} autoComplete="off" />
+      </div>
+
       {/* Nome */}
       <div>
         <label className="block text-sm font-medium text-espresso mb-1.5">
