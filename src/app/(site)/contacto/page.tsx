@@ -17,6 +17,7 @@ export default async function ContactoPage() {
     getDeliveryInfo(),
   ]);
   const zones: { zone: string; price: number }[] = deliveryInfo?.zones ?? [];
+  const leadDays: number = deliveryInfo?.leadTime ?? 0;
 
   return (
     <main className="flex-1 flex flex-col">
@@ -34,7 +35,7 @@ export default async function ContactoPage() {
           </p>
         </div>
         <Suspense>
-          <OrderForm products={products} blockedDates={blockedDates} zones={zones} />
+          <OrderForm products={products} blockedDates={blockedDates} zones={zones} leadDays={leadDays} />
         </Suspense>
       </div>
     </main>

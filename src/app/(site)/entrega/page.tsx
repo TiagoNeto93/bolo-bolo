@@ -37,7 +37,9 @@ export default async function EntregaPage() {
             </div>
             <div>
               <p className="font-medium text-espresso">Prazo mínimo</p>
-              <p className="mt-0.5 text-warm-brown">{info.leadTime}</p>
+              <p className="mt-0.5 text-warm-brown">
+              Mínimo de {info.leadTime} {info.leadTime === 1 ? "dia" : "dias"} de antecedência
+            </p>
             </div>
           </div>
         )}

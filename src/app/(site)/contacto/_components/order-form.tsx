@@ -35,12 +35,16 @@ export function OrderForm({
   products,
   blockedDates,
   zones,
+  leadDays,
 }: {
   products: Product[];
   blockedDates: string[];
   zones: Zone[];
+  leadDays: number;
 }) {
   const excludedDates = blockedDates.map(parseSanityDate);
+  const minDate = new Date();
+  minDate.setDate(minDate.getDate() + leadDays);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -229,7 +233,7 @@ export function OrderForm({
           selected={data}
           onChange={(date: Date | null) => setData(date)}
           dateFormat="dd/MM/yyyy"
-          minDate={new Date()}
+          minDate={minDate}
           excludeDates={excludedDates}
           placeholderText="dd/mm/aaaa"
           className={inputClass}

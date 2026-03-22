@@ -39,9 +39,10 @@ export const deliveryInfo = {
     },
     {
       name: "leadTime",
-      title: "Prazo minimo de encomenda",
-      type: "string",
-      placeholder: "Ex: 3 dias de antecedencia",
+      title: "Prazo minimo de encomenda (dias)",
+      type: "number",
+      description: "Numero de dias minimos de antecedencia para fazer uma encomenda",
+      placeholder: "Ex: 3",
     },
     {
       name: "notes",
