@@ -4,6 +4,7 @@ import { blockedDate } from "./blocked-date";
 import { homepage } from "./homepage";
 import { about } from "./about";
 import { deliveryInfo } from "./delivery-info";
+import { encomenda } from "./encomenda";
 
 export const schemaTypes = [
   // Content (catalogue)
@@ -15,4 +16,6 @@ export const schemaTypes = [
   deliveryInfo,
   // Operations
   blockedDate,
+  // Orders
+  encomenda,
 ];

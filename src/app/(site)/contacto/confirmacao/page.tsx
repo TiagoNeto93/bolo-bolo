@@ -5,7 +5,13 @@ export const metadata: Metadata = {
   title: "Encomenda enviada | Bolo-Bolo",
 };
 
-export default function ConfirmacaoPage() {
+export default async function ConfirmacaoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ref?: string }>;
+}) {
+  const { ref } = await searchParams;
+
   return (
     <main className="flex-1 flex flex-col items-center justify-center px-6 py-24 text-center">
       <div className="stagger-children max-w-md">
@@ -17,6 +23,13 @@ export default function ConfirmacaoPage() {
           Obrigada pelo teu pedido. Vou entrar em contacto em breve pelo
           WhatsApp ou email para confirmar todos os detalhes.
         </p>
+        {ref && (
+          <div className="mt-6 px-5 py-4 bg-parchment rounded-2xl border border-honey/30 text-sm text-warm-brown">
+            A tua referência é{" "}
+            <span className="font-semibold text-espresso tracking-wide">{ref}</span>
+            {" "}— guarda-a para qualquer questão.
+          </div>
+        )}
         <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/produtos" className="btn-primary">
             Ver mais bolos

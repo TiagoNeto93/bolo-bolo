@@ -105,7 +105,8 @@ export function OrderForm({
     });
 
     if (res.ok) {
-      router.push("/contacto/confirmacao");
+      const json = await res.json();
+      router.push(`/contacto/confirmacao?ref=${encodeURIComponent(json.referencia ?? "")}`);
     } else {
       const json = await res.json();
       setError(json.error ?? "Algo correu mal. Tenta outra vez.");
