@@ -29,10 +29,11 @@ export function OrderForm({ products }: { products: Product[] }) {
   const router = useRouter();
 
   const preselected = searchParams.get("produto") ?? "";
+  const preselectedSize = searchParams.get("tamanho") ?? "";
 
   const [form, setForm] = useState({ nome: "", contacto: "", notas: "" });
   const [items, setItems] = useState<OrderItem[]>([
-    { produto: preselected, tamanho: "" },
+    { produto: preselected, tamanho: preselectedSize },
   ]);
   const [data, setData] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
@@ -157,11 +158,12 @@ export function OrderForm({ products }: { products: Product[] }) {
                   {/* Size select — only if product has sizes */}
                   {sizes.length > 0 && (
                     <select
+                      required
                       value={item.tamanho}
                       onChange={(e) => handleItemChange(i, "tamanho", e.target.value)}
                       className="flex-1 px-4 py-2.5 rounded-lg border border-parchment bg-white text-espresso focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition"
                     >
-                      <option value="">Tamanho (opcional)</option>
+                      <option value="" disabled>Escolhe um tamanho…</option>
                       {sizes.map((s) => (
                         <option key={s.label} value={s.label}>
                           {s.label} — €{s.price}
