@@ -57,13 +57,14 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 3. **Build** — schema → query → page/component → wire up
 4. **Verify** — build passes, feature works end-to-end
 5. **Commit** — clean commit on the slice branch, descriptive message
-6. **Merge & push** — merge to `main`, push both branches
+6. **Open PR** — push branch and open a PR with `gh pr create`; never merge to `main` directly
 7. **Update tracker** — mark slice as done below, move to next
 
 ### Rules
 - Every slice gets its own branch: `slice/N-short-name` (e.g. `slice/2-produto-catalogue`)
 - Never start a new slice until the current one is verified and committed
 - Never commit slice work directly to `main` — always branch first
+- Never merge a slice branch into `main` — open a PR and let the user merge
 - If a slice reveals missing work, add it as a new slice — don't scope-creep the current one
 - Each session should start by reading this file and picking up where we left off
 - When we discover a reusable pattern or convention during a slice, add it to "Conventions" below
