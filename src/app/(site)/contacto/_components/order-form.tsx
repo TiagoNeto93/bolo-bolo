@@ -44,6 +44,7 @@ export function OrderForm({
 }) {
   const excludedDates = blockedDates.map(parseSanityDate);
   const minDate = new Date();
+  minDate.setHours(0, 0, 0, 0);
   minDate.setDate(minDate.getDate() + leadDays);
   const searchParams = useSearchParams();
   const router = useRouter();
