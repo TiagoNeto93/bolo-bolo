@@ -35,6 +35,9 @@ export function Footer() {
           <Link href="/contacto" className="link-warm hover:text-white transition-colors">
             Encomendas
           </Link>
+          <Link href="/encomenda" className="link-warm hover:text-white transition-colors">
+            Estado da encomenda
+          </Link>
         </nav>
 
         {/* Divider */}

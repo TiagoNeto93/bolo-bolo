@@ -84,10 +84,11 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 8 | SEO, metadata, OG images, performance polish | DONE |
 | 9 | Order management — persist enquiries in Sanity | DONE |
 | 10 | Rate limiting + honeypot spam protection | DONE |
-| 11 | Vercel Analytics | TODO |
+| 11 | Vercel Analytics | DONE |
 | 12 | Seasonal / featured specials | TODO |
-| 13 | Order status lookup | TODO |
+| 13 | Order status lookup | DONE |
 | 14 | Availability auto-block | TODO |
+| 15 | Customer confirmation email | TODO |
 
 ### Slice 9 detail — Order management
 
@@ -186,6 +187,28 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 - Only count `estado != "cancelada"` orders when checking capacity
 - Do not unblock dates automatically when an order is cancelled — baker handles that manually in Studio (avoids complexity)
 - `maxEncomendas` must be visible and editable in Studio under the Entrega section
+
+### Slice 15 detail — Customer confirmation email
+
+**Goal:** Send the customer a confirmation email after a successful enquiry, containing their reference number and a direct link to check their order status — so they don't need to remember to copy the reference on the spot.
+
+**Context:** Currently only the baker receives a notification email (slice 4). The customer only sees the reference on the `/contacto/confirmacao` page — if they close that tab, it's gone.
+
+**API route changes (`/api/encomenda`):**
+- After generating `referencia` and writing to Sanity, send a second email to the customer's email/phone field (only if it looks like an email — skip if it's a phone number)
+- Use the same Resend/Nodemailer setup already in place for the baker notification
+- Customer email content:
+  - Subject: `Encomenda recebida — ${referencia}`
+  - Body: thank you message, the reference number prominent, a direct link to `/encomenda/${referencia}`, reminder that she'll be in touch via WhatsApp to confirm
+- Keep the baker notification email unchanged
+
+**Confirmation page (`/contacto/confirmacao`):**
+- Re-add the "Ver estado da encomenda →" link that was lost in a revert (links to `/encomenda/${ref}`)
+
+**Constraints:**
+- Customer email must not block or fail the request — wrap in try/catch, log errors silently
+- Do not send a customer email if the contacto field is a phone number (no `@`)
+- All copy in Portuguese, informal "tu"
 
 ---
 
