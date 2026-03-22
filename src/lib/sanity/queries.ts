@@ -98,6 +98,22 @@ export async function getAboutContent() {
   );
 }
 
+// ─── Encomendas ──────────────────────────────────────────────────────────────
+
+export async function getEncomendaByReferencia(referencia: string) {
+  return client.fetch(
+    `*[_type == "encomenda" && referencia == $referencia][0] {
+      referencia,
+      estado,
+      nome,
+      data
+    }`,
+    { referencia }
+  );
+}
+
+// ─── Page content (singletons) ───────────────────────────────────────────────
+
 export async function getDeliveryInfo() {
   return client.fetch(
     `*[_type == "deliveryInfo" && _id == "deliveryInfo"][0] {

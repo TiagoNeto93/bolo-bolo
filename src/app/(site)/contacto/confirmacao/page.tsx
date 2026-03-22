@@ -27,7 +27,13 @@ export default async function ConfirmacaoPage({
           <div className="mt-6 px-5 py-4 bg-parchment rounded-2xl border border-honey/30 text-sm text-warm-brown">
             A tua referência é{" "}
             <span className="font-semibold text-espresso tracking-wide">{ref}</span>
-            {" "}— guarda-a para qualquer questão.
+            {" "}— guarda-a para qualquer questão.{" "}
+            <Link
+              href={`/encomenda/${ref}`}
+              className="text-terracotta hover:underline font-medium"
+            >
+              Ver estado da encomenda →
+            </Link>
           </div>
         )}
         <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
