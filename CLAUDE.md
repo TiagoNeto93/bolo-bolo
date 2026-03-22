@@ -78,8 +78,8 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 2 | Produto catalogue page | DONE |
 | 3 | Produto detail page | DONE |
 | 4 | Order enquiry form + email notification | DONE |
-| 5 | Blocked dates in date picker | TODO |
-| 6 | Sobre + Galeria pages | TODO |
+| 5 | Blocked dates in date picker | DONE |
+| 6 | Sobre + Galeria pages | IN PROGRESS |
 | 7 | Entrega page + homepage featured cakes | TODO |
 | 8 | SEO, metadata, OG images, performance polish | TODO |
 | 9 | Order management — persist enquiries in Sanity | TODO |
