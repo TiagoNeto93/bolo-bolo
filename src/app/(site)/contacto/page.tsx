@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import { OrderForm } from "./_components/order-form";
 import { getProducts, getBlockedDates } from "@/lib/sanity/queries";
