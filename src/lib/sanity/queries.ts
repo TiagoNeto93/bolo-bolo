@@ -1,48 +1,109 @@
 import { client } from "./client";
 
-export async function getProducts() {
-  return client.fetch(`*[_type == "product" && available == true] | order(category asc, name asc) {
-    _id,
-    name,
-    "slug": slug.current,
-    description,
-    image,
-    price,
-    category
-  }`);
-}
+// ─── Products ───────────────────────────────────────────────────────────────
 
-export async function getProductBySlug(slug: string) {
-  return client.fetch(
-    `*[_type == "product" && slug.current == $slug][0] {
+export async function getProducts() {
+  return client.fetch(`
+    *[_type == "product" && available == true] | order(category asc, name asc) {
       _id,
       name,
       "slug": slug.current,
       description,
-      image,
+      "image": images[0],
+      images,
       price,
-      category
-    }`,
+      category,
+      sizes,
+      flavours,
+      featured
+    }
+  `);
+}
+
+export async function getFeaturedProducts() {
+  return client.fetch(`
+    *[_type == "product" && available == true && featured == true] | order(name asc) {
+      _id,
+      name,
+      "slug": slug.current,
+      description,
+      "image": images[0],
+      category,
+      sizes
+    }
+  `);
+}
+
+export async function getProductBySlug(slug: string) {
+  return client.fetch(
+    `
+    *[_type == "product" && slug.current == $slug][0] {
+      _id,
+      name,
+      "slug": slug.current,
+      description,
+      images,
+      category,
+      sizes,
+      flavours,
+      available
+    }
+  `,
     { slug }
   );
 }
 
+// ─── Gallery ─────────────────────────────────────────────────────────────────
+
 export async function getGalleryImages() {
-  return client.fetch(`*[_type == "galleryImage"] | order(_createdAt desc) {
-    _id,
-    title,
-    image,
-    alt
-  }`);
+  return client.fetch(`
+    *[_type == "galleryImage"] | order(_createdAt desc) {
+      _id,
+      title,
+      image,
+      alt
+    }
+  `);
 }
 
-export async function getPageContent(page: string) {
+// ─── Blocked Dates ───────────────────────────────────────────────────────────
+
+export async function getBlockedDates(): Promise<string[]> {
+  return client.fetch(`
+    *[_type == "blockedDate"] | order(date asc) {
+      date
+    }.date
+  `);
+}
+
+// ─── Page content (singletons) ───────────────────────────────────────────────
+
+export async function getHomepageContent() {
   return client.fetch(
-    `*[_type == "pageContent" && page == $page][0] {
+    `*[_type == "homepage" && _id == "homepage"][0] {
+      heroTagline,
+      heroDescription,
+      heroCta
+    }`
+  );
+}
+
+export async function getAboutContent() {
+  return client.fetch(
+    `*[_type == "about" && _id == "about"][0] {
       heading,
-      body,
-      heroImage
-    }`,
-    { page }
+      photo,
+      body
+    }`
+  );
+}
+
+export async function getDeliveryInfo() {
+  return client.fetch(
+    `*[_type == "deliveryInfo" && _id == "deliveryInfo"][0] {
+      zones,
+      leadTime,
+      notes
+    }`
   );
 }

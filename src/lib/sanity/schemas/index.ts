@@ -1,5 +1,18 @@
 import { product } from "./product";
 import { galleryImage } from "./gallery-image";
-import { pageContent } from "./page-content";
+import { blockedDate } from "./blocked-date";
+import { homepage } from "./homepage";
+import { about } from "./about";
+import { deliveryInfo } from "./delivery-info";
 
-export const schemaTypes = [product, galleryImage, pageContent];
+export const schemaTypes = [
+  // Content (catalogue)
+  product,
+  galleryImage,
+  // Singletons (page content)
+  homepage,
+  about,
+  deliveryInfo,
+  // Operations
+  blockedDate,
+];

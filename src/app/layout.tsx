@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Fredoka, Playfair_Display, DM_Sans } from "next/font/google";
-import { Header } from "./_components/header";
-import { Footer } from "./_components/footer";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -27,8 +25,7 @@ export const metadata: Metadata = {
     template: "%s | Bolo-Bolo",
     default: "Bolo-Bolo | Bolos Caseiros em Braga",
   },
-  description:
-    "Bolos caseiros feitos com carinho, la em casa, em Braga.",
+  description: "Bolos caseiros feitos com carinho, la em casa, em Braga.",
 };
 
 export default function RootLayout({
@@ -41,11 +38,7 @@ export default function RootLayout({
       lang="pt"
       className={`${fredoka.variable} ${playfair.variable} ${dmSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <Header />
-        {children}
-        <Footer />
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

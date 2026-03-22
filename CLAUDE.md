@@ -69,7 +69,7 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | # | Slice | Status |
 |---|-------|--------|
 | 0 | Project skeleton + design system | DONE |
-| 1 | Sanity Studio + core schemas | TODO |
+| 1 | Sanity Studio + core schemas | DONE |
 | 2 | Produto catalogue page | TODO |
 | 3 | Produto detail page | TODO |
 | 4 | Order enquiry form + email notification | TODO |
@@ -96,6 +96,17 @@ Code patterns and decisions we've committed to. Grows as we build.
 - Shared layout components live in `src/app/_components/`
 - Header is a client component (mobile menu state); keep other components as server components unless interactivity is needed
 - Sanity client + queries live in `src/lib/sanity/`
+- Site pages live in `src/app/(site)/` route group — gets Header + Footer via `(site)/layout.tsx`
+- Studio lives in `src/app/studio/[[...tool]]/` — separate from site layout, no Header/Footer
+- Root layout (`src/app/layout.tsx`) only provides fonts and global CSS, no nav
+
+### Sanity
+- Schemas use plain objects (not `defineType`/`defineField`) — TypeScript `prepare()` functions must use `Record<string, any>` parameter type to satisfy Sanity's `PreviewValue` signature
+- Singletons (homepage, about, deliveryInfo) use `__experimental_actions` to prevent creating multiple documents
+- Studio structure manually organized in `sanity.config.ts` via `structureTool({ structure })` for clean baker UX
+- `studioViewport` from `next-sanity` needs `as Viewport` cast for Next.js 16 compatibility
+- Queries always resolve slug as a string: `"slug": slug.current`
+- Blocked dates query returns a flat array of date strings: `[...].date`
 
 ### Copy
 - All UI text in Portuguese, informal "tu" register
