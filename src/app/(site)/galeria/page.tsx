@@ -23,7 +23,7 @@ export default async function GaleriaPage() {
             Galeria
           </h1>
           <p className="mt-4 text-lg text-warm-brown max-w-xl">
-            Cada bolo é feito com carinho — aqui ficam alguns dos meus favoritos.
+            Cada bolo é feito com carinho, aqui ficam alguns dos meus favoritos.
           </p>
         </div>
 
