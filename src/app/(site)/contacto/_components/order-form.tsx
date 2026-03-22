@@ -24,7 +24,19 @@ type OrderItem = {
 const inputClass =
   "w-full px-4 py-3 rounded-xl border border-parchment bg-white text-espresso placeholder-warm-brown/40 focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition";
 
-export function OrderForm({ products }: { products: Product[] }) {
+function parseSanityDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+export function OrderForm({
+  products,
+  blockedDates,
+}: {
+  products: Product[];
+  blockedDates: string[];
+}) {
+  const excludedDates = blockedDates.map(parseSanityDate);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -214,6 +226,7 @@ export function OrderForm({ products }: { products: Product[] }) {
           onChange={(date: Date | null) => setData(date)}
           dateFormat="dd/MM/yyyy"
           minDate={new Date()}
+          excludeDates={excludedDates}
           placeholderText="dd/mm/aaaa"
           className={inputClass}
           wrapperClassName="w-full"
