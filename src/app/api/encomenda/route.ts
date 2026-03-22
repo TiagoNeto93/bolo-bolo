@@ -7,11 +7,12 @@ type OrderItem = { produto: string; tamanho: string };
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { nome, contacto, items, data, notas } = body as {
+  const { nome, contacto, items, data, zona, notas } = body as {
     nome: string;
     contacto: string;
     items: OrderItem[];
     data: string;
+    zona: string;
     notas: string;
   };
 
@@ -54,6 +55,11 @@ export async function POST(req: NextRequest) {
           <tr>
             <td style="padding: 8px 0; color: #5C3D2E; font-size: 13px; vertical-align: top;">Data desejada</td>
             <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${data}</td>
+          </tr>` : ""}
+          ${zona ? `
+          <tr>
+            <td style="padding: 8px 0; color: #5C3D2E; font-size: 13px; vertical-align: top;">Zona de entrega</td>
+            <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${zona}</td>
           </tr>` : ""}
         </table>
 
