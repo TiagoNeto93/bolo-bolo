@@ -2,7 +2,6 @@ export const encomenda = {
   name: "encomenda",
   title: "Encomenda",
   type: "document",
-  __experimental_actions: ["update", "publish"],
   fields: [
     {
       name: "referencia",

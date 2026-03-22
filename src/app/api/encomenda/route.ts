@@ -47,7 +47,10 @@ export async function POST(req: NextRequest) {
           })()
         : undefined,
       zona: zona || undefined,
-      items: validItems,
+      items: validItems.map((item) => ({
+        _key: Math.random().toString(36).slice(2, 10),
+        ...item,
+      })),
       notas: notas || undefined,
     })
     .catch((err) => console.error("Sanity write error:", err));

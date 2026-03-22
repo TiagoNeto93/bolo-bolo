@@ -27,6 +27,7 @@ export default defineConfig({
                 S.documentTypeList("encomenda")
                   .title("Encomendas")
                   .defaultOrdering([{ field: "_createdAt", direction: "desc" }])
+                  .canHandleIntent((intent) => intent !== "create")
               ),
 
             S.divider(),
