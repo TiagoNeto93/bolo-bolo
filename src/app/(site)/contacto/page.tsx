@@ -1,21 +1,31 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { OrderForm } from "./_components/order-form";
 
 export const metadata: Metadata = {
-  title: "Encomendas",
+  title: "Encomendas | Bolo-Bolo",
   description: "Queres encomendar um bolo? Fala comigo!",
 };
 
 export default function ContactoPage() {
   return (
-    <main className="flex flex-1 flex-col px-6 py-24 max-w-3xl mx-auto">
-      <h1 className="font-heading text-4xl md:text-5xl text-espresso">
-        Encomendas
-      </h1>
-      <p className="mt-6 text-lg text-warm-brown leading-relaxed">
-        Queres encomendar um bolo? Fala comigo!
-      </p>
-      <div className="mt-12">
-        {/* Contact form / order form will go here */}
+    <main className="flex-1 flex flex-col">
+      <div className="px-6 py-16 max-w-2xl mx-auto w-full">
+        <div className="stagger-children">
+          <p className="text-sm uppercase tracking-[0.25em] text-dusty-rose">
+            Vamos começar
+          </p>
+          <h1 className="mt-2 font-heading text-4xl md:text-5xl text-espresso">
+            Fazer uma encomenda
+          </h1>
+          <p className="mt-4 text-lg text-warm-brown leading-relaxed">
+            Preenche o formulário e eu entro em contacto pelo WhatsApp ou email
+            para confirmar todos os detalhes.
+          </p>
+        </div>
+        <Suspense>
+          <OrderForm />
+        </Suspense>
       </div>
     </main>
   );
