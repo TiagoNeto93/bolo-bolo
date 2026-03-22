@@ -1,9 +1,17 @@
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
+import { writeClient } from "@/lib/sanity/write-client";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 type OrderItem = { produto: string; tamanho: string };
+
+function generateReferencia(): string {
+  const now = new Date();
+  const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+  const rand = Math.random().toString(16).slice(2, 6).toUpperCase();
+  return `BB-${date}-${rand}`;
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -20,8 +28,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Campos obrigatórios em falta." }, { status: 400 });
   }
 
+  const referencia = generateReferencia();
   const validItems = (items ?? []).filter((i) => i.produto);
   const firstProduct = validItems[0]?.produto;
+
+  // Write to Sanity — non-blocking: log error but don't fail the request
+  writeClient
+    .create({
+      _type: "encomenda",
+      referencia,
+      estado: "pendente",
+      nome,
+      contacto,
+      data: data
+        ? (() => {
+            const [d, m, y] = data.split("/");
+            return `${y}-${m}-${d}`;
+          })()
+        : undefined,
+      zona: zona || undefined,
+      items: validItems.map((item) => ({
+        _key: Math.random().toString(36).slice(2, 10),
+        ...item,
+      })),
+      notas: notas || undefined,
+    })
+    .catch((err) => console.error("Sanity write error:", err));
 
   const itemsHtml = validItems
     .map(
@@ -36,11 +68,11 @@ export async function POST(req: NextRequest) {
   const { error } = await resend.emails.send({
     from: "Bolo-Bolo <onboarding@resend.dev>",
     to: process.env.BAKER_EMAIL!,
-    subject: `Nova encomenda${firstProduct ? ` — ${firstProduct}` : ""}`,
+    subject: `Nova encomenda ${referencia}${firstProduct ? ` — ${firstProduct}` : ""}`,
     html: `
       <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #F5F0E8; border-radius: 12px;">
         <h1 style="color: #3B2314; font-size: 24px; margin-bottom: 4px;">Nova encomenda</h1>
-        <p style="color: #C4653A; font-size: 14px; margin-top: 0;">Bolo-Bolo</p>
+        <p style="color: #C4653A; font-size: 14px; margin-top: 0;">Bolo-Bolo · Referência: <strong>${referencia}</strong></p>
         <hr style="border: none; border-top: 1px solid #EDE4D3; margin: 24px 0;" />
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
@@ -92,5 +124,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erro ao enviar email." }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, referencia });
 }

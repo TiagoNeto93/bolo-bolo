@@ -20,6 +20,18 @@ export default defineConfig({
         S.list()
           .title("Bolo-Bolo")
           .items([
+            // Orders
+            S.listItem()
+              .title("Encomendas")
+              .child(
+                S.documentTypeList("encomenda")
+                  .title("Encomendas")
+                  .defaultOrdering([{ field: "_createdAt", direction: "desc" }])
+                  .canHandleIntent((intent) => intent !== "create")
+              ),
+
+            S.divider(),
+
             // Catalogue
             S.listItem()
               .title("Bolos")
