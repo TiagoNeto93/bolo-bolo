@@ -118,6 +118,24 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 
 ---
 
+## Future Architecture Notes
+
+Decisions deferred intentionally. Read before adding new infrastructure.
+
+### Order management beyond Sanity
+
+Orders are currently stored in Sanity (Slice 9). This is fine for the current scale (home bakery, enquiry-based, confirmed via WhatsApp).
+
+**Migrate to Supabase (PostgreSQL) if any of these become true:**
+- Online payments are added — Stripe requires reliable transactional records linked to payment intents; Sanity is not built for this
+- Customer accounts are needed — login, order history, reorder — requires proper auth + relational DB
+- Reporting/analytics become important — revenue trends, orders per month, best-selling products — GROQ is not a reporting engine
+- Order volume grows to dozens per day — Sanity mutation rate limits could become a constraint
+
+**Why Supabase specifically:** free tier is generous, PostgreSQL is battle-tested, has built-in auth (if customer accounts are ever needed), and integrates cleanly with Next.js via `@supabase/ssr`. A migration would mean: new `orders` table in Supabase, update `/api/encomenda` to write there instead of (or in addition to) Sanity, and build a simple order dashboard (could stay in the Next.js app rather than Studio).
+
+---
+
 ## Conventions
 
 Code patterns and decisions we've committed to. Grows as we build.
