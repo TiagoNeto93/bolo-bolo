@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fredoka, Playfair_Display, DM_Sans } from "next/font/google";
+import { Fredoka, Playfair_Display, DM_Sans, Noto_Color_Emoji } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -19,6 +19,12 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   subsets: ["latin"],
   display: "swap",
+});
+
+const notoColorEmoji = Noto_Color_Emoji({
+  variable: "--font-emoji",
+  subsets: ["emoji"],
+  weight: "400",
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://bolo-bolo.pt";
@@ -63,7 +69,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt"
-      className={`${fredoka.variable} ${playfair.variable} ${dmSans.variable} h-full antialiased`}
+      className={`${fredoka.variable} ${playfair.variable} ${dmSans.variable} ${notoColorEmoji.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}
