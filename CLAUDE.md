@@ -91,6 +91,7 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 15 | Customer confirmation email | DONE |
 | 16 | CMS-managed copy — homepage hero, footer tagline, confirmation page | DONE |
 | 17 | Service simplification — replace Upstash with in-memory rate limiting | DONE |
+| 18 | Studio branding — brand theme, custom logo, nav icons | DONE |
 
 ### Slice 9 detail — Order management
 
@@ -254,6 +255,11 @@ Rate limiting is currently handled **in-memory** (`ipRequests` Map in `src/app/a
 ## Conventions
 
 Code patterns and decisions we've committed to. Grows as we build.
+
+### Sanity Studio theming
+- Studio theme lives in `src/lib/sanity/studio-theme.ts` — uses `buildTheme` from `@sanity/ui/theme` with a warm gray palette (linen light end, espresso dark end) and terracotta replacing the default blue hue for primary states
+- Custom logo component at `src/lib/sanity/StudioLogo.tsx` — uses `color: inherit` so it adapts to light/dark mode
+- Global heading CSS in `globals.css` (`h1–h6 { color: var(--color-espresso) }`) bleeds into the Studio in dark mode, making document headings nearly invisible. A `[data-sanity-core]` reset was attempted but did not take effect. **Known issue — dark mode document headings render in espresso against a dark background.** If revisiting, inspect the Studio's root DOM element to find the correct isolation selector, or scope the global heading rule to a site-only wrapper class.
 
 ### Design system
 - Use `font-display` (Fredoka) for the Bolo-Bolo brand name and display text

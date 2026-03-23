@@ -91,6 +91,18 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.15;
 }
 
+/* Prevent site-level heading colour from bleeding into Sanity Studio */
+[data-sanity-core] h1,
+[data-sanity-core] h2,
+[data-sanity-core] h3,
+[data-sanity-core] h4,
+[data-sanity-core] h5,
+[data-sanity-core] h6 {
+  color: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
 /* ─── Selection ─── */
 
 ::selection {

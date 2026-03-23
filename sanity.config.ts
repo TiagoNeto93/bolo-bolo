@@ -3,7 +3,18 @@
 import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
 import { visionTool } from "@sanity/vision";
+import {
+  BasketIcon,
+  CalendarIcon,
+  HomeIcon,
+  IceCreamIcon,
+  ImagesIcon,
+  MarkerIcon,
+  UserIcon,
+} from "@sanity/icons";
 import { schemaTypes } from "./src/lib/sanity/schemas";
+import { studioTheme } from "./src/lib/sanity/studio-theme";
+import { StudioLogo } from "./src/lib/sanity/StudioLogo";
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!;
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production";
@@ -14,6 +25,12 @@ export default defineConfig({
   basePath: "/studio",
   projectId,
   dataset,
+  theme: studioTheme,
+  studio: {
+    components: {
+      logo: StudioLogo,
+    },
+  },
   plugins: [
     structureTool({
       structure: (S) =>
@@ -23,6 +40,7 @@ export default defineConfig({
             // Orders
             S.listItem()
               .title("Encomendas")
+              .icon(BasketIcon)
               .child(
                 S.documentTypeList("encomenda")
                   .title("Encomendas")
@@ -35,9 +53,11 @@ export default defineConfig({
             // Catalogue
             S.listItem()
               .title("Bolos")
+              .icon(IceCreamIcon)
               .child(S.documentTypeList("product").title("Bolos")),
             S.listItem()
               .title("Galeria")
+              .icon(ImagesIcon)
               .child(S.documentTypeList("galleryImage").title("Galeria")),
 
             S.divider(),
@@ -45,6 +65,7 @@ export default defineConfig({
             // Singletons — only one document each
             S.listItem()
               .title("Pagina Inicial")
+              .icon(HomeIcon)
               .child(
                 S.document()
                   .schemaType("homepage")
@@ -53,6 +74,7 @@ export default defineConfig({
               ),
             S.listItem()
               .title("Sobre Mim")
+              .icon(UserIcon)
               .child(
                 S.document()
                   .schemaType("about")
@@ -61,6 +83,7 @@ export default defineConfig({
               ),
             S.listItem()
               .title("Informacoes de Entrega")
+              .icon(MarkerIcon)
               .child(
                 S.document()
                   .schemaType("deliveryInfo")
@@ -73,6 +96,7 @@ export default defineConfig({
             // Operations
             S.listItem()
               .title("Datas Bloqueadas")
+              .icon(CalendarIcon)
               .child(
                 S.documentTypeList("blockedDate").title("Datas Bloqueadas")
               ),
