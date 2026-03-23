@@ -1,10 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getFeaturedProducts } from "@/lib/sanity/queries";
+import { getFeaturedProducts, getHomepageContent } from "@/lib/sanity/queries";
 import { urlFor } from "@/lib/sanity/image";
 
 export default async function HomePage() {
-  const featured = await getFeaturedProducts();
+  const [featured, cms] = await Promise.all([
+    getFeaturedProducts(),
+    getHomepageContent(),
+  ]);
 
   return (
     <main className="flex-1 flex flex-col">
@@ -17,19 +20,18 @@ export default async function HomePage() {
 
         <div className="relative z-10 stagger-children text-center max-w-3xl">
           <p className="text-sm uppercase tracking-[0.25em] text-dusty-rose font-medium">
-            Bolos caseiros em Braga
+            {cms?.heroTagline ?? "Bolos caseiros em Braga"}
           </p>
           <h1 className="mt-4 font-display text-7xl sm:text-8xl md:text-9xl font-bold text-espresso leading-none">
             Bolo<span className="text-terracotta">-</span>Bolo
           </h1>
           <div className="mx-auto mt-6 w-24 h-1 bg-gradient-to-r from-honey via-terracotta to-dusty-rose rounded-full" />
           <p className="mt-8 text-xl md:text-2xl text-warm-brown leading-relaxed max-w-lg mx-auto">
-            Cheesecakes, bolos de chocolate e bolos de cenoura
-            &mdash; feitos por mim, com amor, lá em casa.
+            {cms?.heroDescription ?? "Cheesecakes, bolos de chocolate e bolos de cenoura — feitos por mim, com amor, lá em casa."}
           </p>
           <div className="mt-10">
             <Link href="/contacto" className="btn-primary">
-              Faz a tua encomenda
+              {cms?.heroCta ?? "Faz a tua encomenda"}
             </Link>
           </div>
         </div>

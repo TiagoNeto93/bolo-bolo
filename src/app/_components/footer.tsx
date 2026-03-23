@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { getHomepageContent } from "@/lib/sanity/queries";
 
-export function Footer() {
+export async function Footer() {
+  const cms = await getHomepageContent();
+
   return (
     <footer className="relative overflow-hidden bg-espresso text-parchment mt-auto">
       {/* Soft top edge */}
@@ -16,8 +19,7 @@ export function Footer() {
             Bolo<span className="text-terracotta">-</span>Bolo
           </p>
           <p className="mt-3 text-dusty-rose text-sm max-w-xs mx-auto">
-            Feito com amor, la em casa, em Braga.
-            Obrigada por passares por aqui!
+            {cms?.footerTagline ?? "Feito com amor, la em casa, em Braga.\nObrigada por passares por aqui!"}
           </p>
         </div>
 

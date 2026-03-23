@@ -24,6 +24,26 @@ export const homepage = {
       type: "string",
       description: "Ex: Faz a tua encomenda",
     },
+    {
+      name: "footerTagline",
+      title: "Mensagem do rodape",
+      type: "text",
+      rows: 2,
+      description: "Mensagem pessoal no rodape do site",
+    },
+    {
+      name: "confirmacaoTitulo",
+      title: "Titulo da pagina de confirmacao",
+      type: "string",
+      description: "Ex: Obrigado pela preferencia, a tua encomenda esta no forno",
+    },
+    {
+      name: "confirmacaoTexto",
+      title: "Texto da pagina de confirmacao",
+      type: "text",
+      rows: 4,
+      description: "Paragrafo de confirmacao apos a encomenda ser enviada",
+    },
   ],
   preview: {
     prepare() {
