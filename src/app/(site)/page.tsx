@@ -3,6 +3,8 @@ import Image from "next/image";
 import { getFeaturedProducts, getHomepageContent, getSpecialProducts } from "@/lib/sanity/queries";
 import { urlFor } from "@/lib/sanity/image";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const [featured, specials, cms] = await Promise.all([
     getFeaturedProducts(),
