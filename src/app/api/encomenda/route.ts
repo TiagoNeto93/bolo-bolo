@@ -65,6 +65,39 @@ export async function POST(req: NextRequest) {
   const validItems = (items ?? []).filter((i) => i.produto);
   const firstProduct = validItems[0]?.produto;
 
+  const isoDate = data
+    ? (() => {
+        const [d, m, y] = data.split("/");
+        return `${y}-${m}-${d}`;
+      })()
+    : undefined;
+
+  // Pre-check: determine whether this order will hit the daily limit.
+  // Must run BEFORE the create to avoid Sanity's eventual-consistency lag
+  // (a count query immediately after a mutation may not see the new doc).
+  let shouldAutoBlock = false;
+  if (isoDate) {
+    try {
+      const [preCount, deliverySettings, alreadyBlocked] = await Promise.all([
+        writeClient.fetch<number>(
+          `count(*[_type == "encomenda" && data == $date && estado != "cancelada"])`,
+          { date: isoDate }
+        ),
+        writeClient.fetch<{ maxEncomendas?: number }>(
+          `*[_type == "deliveryInfo" && _id == "deliveryInfo"][0]{ maxEncomendas }`
+        ),
+        writeClient.fetch<number>(
+          `count(*[_type == "blockedDate" && date == $date])`,
+          { date: isoDate }
+        ),
+      ]);
+      const max = deliverySettings?.maxEncomendas ?? 2;
+      shouldAutoBlock = preCount + 1 >= max && alreadyBlocked === 0;
+    } catch (err) {
+      console.error("Auto-block pre-check error:", err);
+    }
+  }
+
   // Write to Sanity — non-blocking: log error but don't fail the request
   writeClient
     .create({
@@ -73,18 +106,25 @@ export async function POST(req: NextRequest) {
       estado: "pendente",
       nome,
       contacto,
-      data: data
-        ? (() => {
-            const [d, m, y] = data.split("/");
-            return `${y}-${m}-${d}`;
-          })()
-        : undefined,
+      data: isoDate,
       zona: zona || undefined,
       items: validItems.map((item) => ({
         _key: Math.random().toString(36).slice(2, 10),
         ...item,
       })),
       notas: notas || undefined,
+    })
+    .then(async () => {
+      if (!shouldAutoBlock || !isoDate) return;
+      try {
+        await writeClient.create({
+          _type: "blockedDate",
+          date: isoDate,
+          reason: "Lotacao esgotada (bloqueio automatico)",
+        });
+      } catch (err) {
+        console.error("Auto-block error:", err);
+      }
     })
     .catch((err) => console.error("Sanity write error:", err));
 
