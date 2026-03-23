@@ -90,6 +90,7 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 14 | Availability auto-block | DONE |
 | 15 | Customer confirmation email | DONE |
 | 16 | CMS-managed copy — homepage hero, footer tagline, confirmation page | DONE |
+| 17 | Service simplification — replace Upstash with in-memory rate limiting | DONE |
 
 ### Slice 9 detail — Order management
 
@@ -237,6 +238,16 @@ Orders are currently stored in Sanity (Slice 9). This is fine for the current sc
 - Order volume grows to dozens per day — Sanity mutation rate limits could become a constraint
 
 **Why Supabase specifically:** free tier is generous, PostgreSQL is battle-tested, has built-in auth (if customer accounts are ever needed), and integrates cleanly with Next.js via `@supabase/ssr`. A migration would mean: new `orders` table in Supabase, update `/api/encomenda` to write there instead of (or in addition to) Sanity, and build a simple order dashboard (could stay in the Next.js app rather than Studio).
+
+### Rate limiting upgrade path
+
+Rate limiting is currently handled **in-memory** (`ipRequests` Map in `src/app/api/encomenda/route.ts`) — 3 requests per IP per hour, resets on cold start. This is sufficient for a low-traffic home bakery, especially combined with the honeypot field.
+
+**Upgrade to Vercel KV if any of these become true:**
+- Abuse or spam bypasses the honeypot and overwhelms the form
+- Traffic grows and cold-start resets make in-memory limits unreliable
+
+**How to upgrade:** Vercel dashboard → Storage → Create KV Database → env vars (`KV_REST_API_URL`, `KV_REST_API_TOKEN`) are auto-injected into the project. Vercel KV is powered by Upstash under the hood, so the old `Ratelimit.slidingWindow()` pattern from the git history works unchanged — just swap in the new env vars.
 
 ---
 
