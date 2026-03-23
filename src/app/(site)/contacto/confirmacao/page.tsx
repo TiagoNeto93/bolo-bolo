@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import OvenAnimation from "./_components/oven-animation";
 
 export const metadata: Metadata = {
   title: "Encomenda enviada | Bolo-Bolo",
@@ -15,13 +16,16 @@ export default async function ConfirmacaoPage({
   return (
     <main className="flex-1 flex flex-col items-center justify-center px-6 py-24 text-center">
       <div className="stagger-children max-w-md">
-        <div className="text-6xl mb-6">🎂</div>
-        <h1 className="font-heading text-4xl text-espresso">
-          Encomenda recebida!
+        <OvenAnimation />
+        <h1 className="font-heading text-4xl text-espresso mt-4">
+          Obrigado pela preferência, a tua encomenda está no forno
         </h1>
-        <p className="mt-5 text-lg text-warm-brown leading-relaxed">
-          Obrigada pelo teu pedido. Vou entrar em contacto em breve pelo
-          WhatsApp ou email para confirmar todos os detalhes.
+        <p className="mt-5 text-warm-brown leading-relaxed">
+          Estás oficialmente cada vez mais perto de uma garfada de felicidade! <span className="emoji">🍰✨</span>
+          <br />
+          Agora só tens de aguentar até que o bolo esteja pronto.
+          <br />
+          Falo contigo em breve, por WhatsApp ou email para combinarmos tudo ao pormenor.
         </p>
         {ref && (
           <div className="mt-6 px-5 py-4 bg-parchment rounded-2xl border border-honey/30 text-sm text-warm-brown">
