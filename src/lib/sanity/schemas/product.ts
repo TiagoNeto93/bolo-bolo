@@ -102,6 +102,19 @@ export const product = {
       description: "Mostrar este bolo na pagina inicial",
     },
     {
+      name: "destaque",
+      title: "Especial da epoca",
+      type: "boolean",
+      initialValue: false,
+      description: "Marcar como especial sazonal (ex: Pascoa, Natal). Aparece numa secao propria na homepage.",
+    },
+    {
+      name: "etiqueta",
+      title: "Etiqueta do especial (opcional)",
+      type: "string",
+      description: "Ex: Especial de Pascoa, Edicao Limitada. Se vazio, mostra 'Destaque'.",
+    },
+    {
       name: "available",
       title: "Disponivel para encomenda",
       type: "boolean",

@@ -20,6 +20,21 @@ export async function getProducts() {
   `);
 }
 
+export async function getSpecialProducts() {
+  return client.fetch(`
+    *[_type == "product" && available == true && destaque == true] | order(name asc) {
+      _id,
+      name,
+      "slug": slug.current,
+      description,
+      "image": images[0],
+      category,
+      sizes,
+      etiqueta
+    }
+  `);
+}
+
 export async function getFeaturedProducts() {
   return client.fetch(`
     *[_type == "product" && available == true && featured == true] | order(name asc) {
