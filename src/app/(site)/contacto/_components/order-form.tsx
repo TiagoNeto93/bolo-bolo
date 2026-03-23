@@ -4,6 +4,52 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { pt } from "date-fns/locale";
+import PhoneInput, { isValidPhoneNumber, getCountryCallingCode } from "react-phone-number-input";
+import type { Country } from "react-phone-number-input";
+
+function flagEmoji(code: Country): string {
+  return code
+    .toUpperCase()
+    .split("")
+    .map((c) => String.fromCodePoint(127397 + c.charCodeAt(0)))
+    .join("");
+}
+
+function CountrySelect({
+  value,
+  onChange,
+  options,
+}: {
+  value: Country;
+  onChange: (v: Country) => void;
+  options: { value: Country | undefined; label: string }[];
+}) {
+  const calling = value ? getCountryCallingCode(value) : null;
+  return (
+    <div className="relative flex items-center gap-1 pl-3 pr-2 shrink-0 cursor-pointer">
+      <select
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value as Country)}
+        className="absolute inset-0 opacity-0 cursor-pointer"
+        aria-label="País"
+      >
+        {options.map((opt) => (
+          <option key={opt.value ?? "__blank"} value={opt.value ?? ""}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      <span className="text-base leading-none pointer-events-none select-none">
+        {value ? flagEmoji(value) : "🌐"}
+      </span>
+      {calling && (
+        <span className="text-sm text-warm-brown pointer-events-none select-none">
+          +{calling}
+        </span>
+      )}
+    </div>
+  );
+}
 
 registerLocale("pt", pt);
 
@@ -53,6 +99,8 @@ export function OrderForm({
   const preselectedSize = searchParams.get("tamanho") ?? "";
 
   const [form, setForm] = useState({ nome: "", contacto: "", zona: "", notas: "" });
+  const [contactMode, setContactMode] = useState<"email" | "phone">("email");
+  const [phoneValue, setPhoneValue] = useState<string | undefined>(undefined);
   const [items, setItems] = useState<OrderItem[]>([
     { produto: preselected, tamanho: preselectedSize },
   ]);
@@ -90,8 +138,28 @@ export function OrderForm({
     return products.find((p) => p.name === productName)?.sizes ?? [];
   }
 
+  function validateContacto(): string | null {
+    if (contactMode === "phone") {
+      return phoneValue && isValidPhoneNumber(phoneValue)
+        ? null
+        : "Número de telemóvel inválido.";
+    }
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.contacto.trim())
+      ? null
+      : "Endereço de email inválido.";
+  }
+
+  function getContactoValue(): string {
+    return contactMode === "phone" ? (phoneValue ?? "") : form.contacto.trim();
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const contactoError = validateContacto();
+    if (contactoError) {
+      setError(contactoError);
+      return;
+    }
     setLoading(true);
     setError("");
 
@@ -102,7 +170,7 @@ export function OrderForm({
     const res = await fetch("/api/encomenda", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, items, data: dataStr, website: honeypotRef.current?.value ?? "" }),
+      body: JSON.stringify({ ...form, contacto: getContactoValue(), items, data: dataStr, website: honeypotRef.current?.value ?? "" }),
     });
 
     if (res.ok) {
@@ -144,15 +212,45 @@ export function OrderForm({
         <label className="block text-sm font-medium text-espresso mb-1.5">
           Email ou telemóvel <span className="text-terracotta">*</span>
         </label>
-        <input
-          type="text"
-          name="contacto"
-          required
-          value={form.contacto}
-          onChange={handleChange}
-          placeholder="Ex: ana@email.com ou +351 912 345 678"
-          className={inputClass}
-        />
+        <div className="flex gap-1 mb-2">
+          {(["email", "phone"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => {
+                setContactMode(mode);
+                setPhoneValue(undefined);
+                setForm((prev) => ({ ...prev, contacto: "" }));
+              }}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                contactMode === mode
+                  ? "bg-terracotta text-white"
+                  : "bg-parchment text-warm-brown hover:bg-parchment/70"
+              }`}
+            >
+              {mode === "email" ? "Email" : "Telemóvel"}
+            </button>
+          ))}
+        </div>
+        {contactMode === "phone" ? (
+          <PhoneInput
+            defaultCountry="PT"
+            value={phoneValue}
+            onChange={setPhoneValue}
+            placeholder="912 345 678"
+            countrySelectComponent={CountrySelect}
+          />
+        ) : (
+          <input
+            type="email"
+            name="contacto"
+            required
+            value={form.contacto}
+            onChange={handleChange}
+            placeholder="ana@email.com"
+            className={inputClass}
+          />
+        )}
       </div>
 
       {/* Cake items */}

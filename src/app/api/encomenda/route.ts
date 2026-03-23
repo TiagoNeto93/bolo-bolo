@@ -61,6 +61,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Campos obrigatórios em falta." }, { status: 400 });
   }
 
+  const isValidContacto = contacto.includes("@")
+    ? /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contacto.trim())
+    : /^\d{9,15}$/.test(contacto.trim().replace(/[\s\-().+]/g, ""));
+  if (!isValidContacto) {
+    return NextResponse.json({ error: "Contacto inválido." }, { status: 400 });
+  }
+
   const referencia = generateReferencia();
   const validItems = (items ?? []).filter((i) => i.produto);
   const firstProduct = validItems[0]?.produto;
@@ -195,6 +202,48 @@ export async function POST(req: NextRequest) {
   if (error) {
     console.error("Resend error:", error);
     return NextResponse.json({ error: "Erro ao enviar email." }, { status: 500 });
+  }
+
+  // Customer confirmation email — only if contacto looks like an email
+  if (contacto.includes("@")) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://bolo-bolo.pt";
+    const statusUrl = `${siteUrl}/encomenda/${referencia}`;
+    const mensagemExtra = await writeClient
+      .fetch<{ emailMensagemExtra?: string }>(
+        `*[_type == "homepage" && _id == "homepage"][0]{ emailMensagemExtra }`
+      )
+      .then((r) => r?.emailMensagemExtra ?? null)
+      .catch(() => null);
+    resend.emails.send({
+      from: "Bolo-Bolo <onboarding@resend.dev>",
+      to: contacto,
+      subject: `Encomenda recebida — ${referencia}`,
+      html: `
+        <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #F5F0E8; border-radius: 12px;">
+          <p style="font-family: sans-serif; font-size: 28px; font-weight: bold; color: #3B2314; margin: 0 0 4px;">Bolo<span style="color: #C4653A;">-</span>Bolo</p>
+          <p style="color: #C4653A; font-size: 13px; margin: 0 0 24px;">Bolos caseiros em Braga</p>
+          <hr style="border: none; border-top: 1px solid #EDE4D3; margin: 0 0 24px;" />
+          <h1 style="color: #3B2314; font-size: 22px; margin: 0 0 12px;">A tua encomenda foi recebida!</h1>
+          <p style="color: #5C3D2E; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+            Olá ${nome}, obrigada pela tua encomenda. Já a recebi e vou entrar em contacto contigo em breve pelo WhatsApp ou email para confirmarmos tudo ao pormenor.
+          </p>
+          <div style="background: white; border-radius: 10px; padding: 16px 20px; margin: 0 0 24px;">
+            <p style="color: #5C3D2E; font-size: 13px; margin: 0 0 4px;">A tua referência</p>
+            <p style="color: #3B2314; font-size: 22px; font-weight: bold; letter-spacing: 0.05em; margin: 0;">${referencia}</p>
+          </div>
+          <p style="color: #5C3D2E; font-size: 14px; line-height: 1.6; margin: 0 0 20px;">
+            Guarda esta referência — podes usá-la para acompanhar o estado da encomenda a qualquer altura.
+          </p>
+          <a href="${statusUrl}" style="display: inline-block; background: #C4653A; color: white; font-family: sans-serif; font-size: 15px; font-weight: 600; padding: 14px 28px; border-radius: 9999px; text-decoration: none;">
+            Ver estado da encomenda →
+          </a>
+          ${mensagemExtra ? `
+          <p style="color: #C4653A; font-size: 14px; font-style: italic; margin: 20px 0 0;">${mensagemExtra}</p>` : ""}
+          <hr style="border: none; border-top: 1px solid #EDE4D3; margin: 28px 0 20px;" />
+          <p style="color: #9e7b6b; font-size: 12px; margin: 0;">Bolo-Bolo · Braga, Portugal</p>
+        </div>
+      `,
+    }).catch((err) => console.error("Customer email error:", err));
   }
 
   return NextResponse.json({ ok: true, referencia });

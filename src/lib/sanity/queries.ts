@@ -86,7 +86,8 @@ export async function getHomepageContent() {
       heroCta,
       footerTagline,
       confirmacaoTitulo,
-      confirmacaoTexto
+      confirmacaoTexto,
+      emailMensagemExtra
     }`
   );
 }

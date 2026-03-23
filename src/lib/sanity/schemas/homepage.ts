@@ -44,6 +44,12 @@ export const homepage = {
       rows: 4,
       description: "Paragrafo de confirmacao apos a encomenda ser enviada",
     },
+    {
+      name: "emailMensagemExtra",
+      title: "Mensagem extra no email de confirmacao (opcional)",
+      type: "string",
+      description: "Aparece no fundo do email enviado ao cliente. Ex: Boas festas! Feliz Pascoa!",
+    },
   ],
   preview: {
     prepare() {
