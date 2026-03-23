@@ -89,6 +89,7 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 13 | Order status lookup | DONE |
 | 14 | Availability auto-block | TODO |
 | 15 | Customer confirmation email | TODO |
+| 16 | CMS-managed copy — homepage hero, footer tagline, confirmation page | DONE |
 
 ### Slice 9 detail — Order management
 

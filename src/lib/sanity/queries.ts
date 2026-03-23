@@ -83,7 +83,10 @@ export async function getHomepageContent() {
     `*[_type == "homepage" && _id == "homepage"][0] {
       heroTagline,
       heroDescription,
-      heroCta
+      heroCta,
+      footerTagline,
+      confirmacaoTitulo,
+      confirmacaoTexto
     }`
   );
 }
