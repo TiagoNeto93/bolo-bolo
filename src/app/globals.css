@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "react-datepicker/dist/react-datepicker.css";
+@import "react-phone-number-input/style.css";
 
 /* ─── Design Tokens ─── */
 
@@ -326,6 +327,51 @@ h1, h2, h3, h4, h5, h6 {
 
 .react-datepicker__navigation-icon::before {
   border-color: var(--color-warm-brown);
+}
+
+/* ─── Phone Input overrides ─── */
+
+.PhoneInput {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.PhoneInputCountrySelect {
+  flex-shrink: 0;
+  padding: 0.75rem 0.625rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-parchment);
+  background: var(--color-white);
+  color: var(--color-espresso);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color var(--duration-fast);
+}
+
+.PhoneInputCountrySelect:focus {
+  outline: none;
+  ring: 2px;
+  border-color: var(--color-terracotta);
+}
+
+.PhoneInputInput {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-parchment);
+  background: var(--color-white);
+  color: var(--color-espresso);
+  transition: border-color var(--duration-fast);
+}
+
+.PhoneInputInput::placeholder {
+  color: color-mix(in srgb, var(--color-warm-brown) 40%, transparent);
+}
+
+.PhoneInputInput:focus {
+  outline: none;
+  border-color: var(--color-terracotta);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-terracotta) 40%, transparent);
 }
 
 /* ─── Portable Text (About page) ─── */

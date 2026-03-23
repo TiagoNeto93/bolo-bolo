@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { pt } from "date-fns/locale";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 
 registerLocale("pt", pt);
 
@@ -53,7 +54,7 @@ export function OrderForm({
   const preselectedSize = searchParams.get("tamanho") ?? "";
 
   const [form, setForm] = useState({ nome: "", contacto: "", zona: "", notas: "" });
-  const [dialCode, setDialCode] = useState("+351");
+  const [phoneValue, setPhoneValue] = useState<string | undefined>(undefined);
   const [items, setItems] = useState<OrderItem[]>([
     { produto: preselected, tamanho: preselectedSize },
   ]);
@@ -93,29 +94,24 @@ export function OrderForm({
 
   const isPhone = !form.contacto.includes("@");
 
-  function validateContacto(value: string): string | null {
-    const trimmed = value.trim();
-    if (trimmed.includes("@")) {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmed)
+  function validateContacto(): string | null {
+    if (isPhone) {
+      return phoneValue && isValidPhoneNumber(phoneValue)
         ? null
-        : "Endereço de email inválido.";
+        : "Número de telemóvel inválido.";
     }
-    const digits = trimmed.replace(/[\s\-().+]/g, "");
-    return /^\d{9,15}$/.test(digits)
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.contacto.trim())
       ? null
-      : "Número de telemóvel inválido. Mínimo 9 dígitos.";
+      : "Endereço de email inválido.";
   }
 
   function getContactoValue(): string {
-    if (isPhone && form.contacto.trim()) {
-      return `${dialCode}${form.contacto.trim()}`;
-    }
-    return form.contacto.trim();
+    return isPhone ? (phoneValue ?? "") : form.contacto.trim();
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const contactoError = validateContacto(form.contacto);
+    const contactoError = validateContacto();
     if (contactoError) {
       setError(contactoError);
       return;
@@ -172,32 +168,25 @@ export function OrderForm({
         <label className="block text-sm font-medium text-espresso mb-1.5">
           Email ou telemóvel <span className="text-terracotta">*</span>
         </label>
-        <div className="flex gap-2">
-          {isPhone && (
-            <select
-              value={dialCode}
-              onChange={(e) => setDialCode(e.target.value)}
-              className="shrink-0 px-3 py-3 rounded-xl border border-parchment bg-white text-espresso focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition text-sm"
-              aria-label="Indicativo do país"
-            >
-              <option value="+351">🇵🇹 +351</option>
-              <option value="+44">🇬🇧 +44</option>
-              <option value="+33">🇫🇷 +33</option>
-              <option value="+34">🇪🇸 +34</option>
-              <option value="+49">🇩🇪 +49</option>
-              <option value="+55">🇧🇷 +55</option>
-            </select>
-          )}
+        {isPhone ? (
+          <PhoneInput
+            defaultCountry="PT"
+            value={phoneValue}
+            onChange={setPhoneValue}
+            placeholder="912 345 678"
+            international
+          />
+        ) : (
           <input
             type="text"
             name="contacto"
             required
             value={form.contacto}
             onChange={handleChange}
-            placeholder={isPhone ? "912 345 678" : "ana@email.com ou 912 345 678"}
-            className={`${inputClass} flex-1`}
+            placeholder="ana@email.com ou 912 345 678"
+            className={inputClass}
           />
-        </div>
+        )}
       </div>
 
       {/* Cake items */}
