@@ -53,6 +53,7 @@ export function OrderForm({
   const preselectedSize = searchParams.get("tamanho") ?? "";
 
   const [form, setForm] = useState({ nome: "", contacto: "", zona: "", notas: "" });
+  const [dialCode, setDialCode] = useState("+351");
   const [items, setItems] = useState<OrderItem[]>([
     { produto: preselected, tamanho: preselectedSize },
   ]);
@@ -90,6 +91,8 @@ export function OrderForm({
     return products.find((p) => p.name === productName)?.sizes ?? [];
   }
 
+  const isPhone = !form.contacto.includes("@");
+
   function validateContacto(value: string): string | null {
     const trimmed = value.trim();
     if (trimmed.includes("@")) {
@@ -101,6 +104,13 @@ export function OrderForm({
     return /^\d{9,15}$/.test(digits)
       ? null
       : "Número de telemóvel inválido. Mínimo 9 dígitos.";
+  }
+
+  function getContactoValue(): string {
+    if (isPhone && form.contacto.trim()) {
+      return `${dialCode}${form.contacto.trim()}`;
+    }
+    return form.contacto.trim();
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -120,7 +130,7 @@ export function OrderForm({
     const res = await fetch("/api/encomenda", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, items, data: dataStr, website: honeypotRef.current?.value ?? "" }),
+      body: JSON.stringify({ ...form, contacto: getContactoValue(), items, data: dataStr, website: honeypotRef.current?.value ?? "" }),
     });
 
     if (res.ok) {
@@ -162,15 +172,32 @@ export function OrderForm({
         <label className="block text-sm font-medium text-espresso mb-1.5">
           Email ou telemóvel <span className="text-terracotta">*</span>
         </label>
-        <input
-          type="text"
-          name="contacto"
-          required
-          value={form.contacto}
-          onChange={handleChange}
-          placeholder="Ex: ana@email.com ou +351 912 345 678"
-          className={inputClass}
-        />
+        <div className="flex gap-2">
+          {isPhone && (
+            <select
+              value={dialCode}
+              onChange={(e) => setDialCode(e.target.value)}
+              className="shrink-0 px-3 py-3 rounded-xl border border-parchment bg-white text-espresso focus:outline-none focus:ring-2 focus:ring-terracotta/40 focus:border-terracotta transition text-sm"
+              aria-label="Indicativo do país"
+            >
+              <option value="+351">🇵🇹 +351</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+33">🇫🇷 +33</option>
+              <option value="+34">🇪🇸 +34</option>
+              <option value="+49">🇩🇪 +49</option>
+              <option value="+55">🇧🇷 +55</option>
+            </select>
+          )}
+          <input
+            type="text"
+            name="contacto"
+            required
+            value={form.contacto}
+            onChange={handleChange}
+            placeholder={isPhone ? "912 345 678" : "ana@email.com ou 912 345 678"}
+            className={`${inputClass} flex-1`}
+          />
+        </div>
       </div>
 
       {/* Cake items */}
