@@ -61,6 +61,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Campos obrigatórios em falta." }, { status: 400 });
   }
 
+  const isValidContacto = contacto.includes("@")
+    ? /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contacto.trim())
+    : /^\d{9,15}$/.test(contacto.trim().replace(/[\s\-().+]/g, ""));
+  if (!isValidContacto) {
+    return NextResponse.json({ error: "Contacto inválido." }, { status: 400 });
+  }
+
   const referencia = generateReferencia();
   const validItems = (items ?? []).filter((i) => i.produto);
   const firstProduct = validItems[0]?.produto;

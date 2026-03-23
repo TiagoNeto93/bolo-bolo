@@ -90,8 +90,26 @@ export function OrderForm({
     return products.find((p) => p.name === productName)?.sizes ?? [];
   }
 
+  function validateContacto(value: string): string | null {
+    const trimmed = value.trim();
+    if (trimmed.includes("@")) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmed)
+        ? null
+        : "Endereço de email inválido.";
+    }
+    const digits = trimmed.replace(/[\s\-().+]/g, "");
+    return /^\d{9,15}$/.test(digits)
+      ? null
+      : "Número de telemóvel inválido. Mínimo 9 dígitos.";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const contactoError = validateContacto(form.contacto);
+    if (contactoError) {
+      setError(contactoError);
+      return;
+    }
     setLoading(true);
     setError("");
 
