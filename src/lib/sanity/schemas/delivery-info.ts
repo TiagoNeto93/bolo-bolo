@@ -45,6 +45,12 @@ export const deliveryInfo = {
       placeholder: "Ex: 3",
     },
     {
+      name: "maxEncomendas",
+      title: "Maximo de encomendas por dia",
+      type: "number",
+      description: "Numero maximo de encomendas aceites por data. Quando atingido, a data e bloqueada automaticamente no formulario. (padrao: 2)",
+    },
+    {
       name: "notes",
       title: "Notas adicionais",
       type: "text",

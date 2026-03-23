@@ -65,6 +65,13 @@ export async function POST(req: NextRequest) {
   const validItems = (items ?? []).filter((i) => i.produto);
   const firstProduct = validItems[0]?.produto;
 
+  const isoDate = data
+    ? (() => {
+        const [d, m, y] = data.split("/");
+        return `${y}-${m}-${d}`;
+      })()
+    : undefined;
+
   // Write to Sanity — non-blocking: log error but don't fail the request
   writeClient
     .create({
@@ -73,18 +80,41 @@ export async function POST(req: NextRequest) {
       estado: "pendente",
       nome,
       contacto,
-      data: data
-        ? (() => {
-            const [d, m, y] = data.split("/");
-            return `${y}-${m}-${d}`;
-          })()
-        : undefined,
+      data: isoDate,
       zona: zona || undefined,
       items: validItems.map((item) => ({
         _key: Math.random().toString(36).slice(2, 10),
         ...item,
       })),
       notas: notas || undefined,
+    })
+    .then(async () => {
+      if (!isoDate) return;
+      try {
+        const [orderCount, deliverySettings, alreadyBlocked] = await Promise.all([
+          writeClient.fetch<number>(
+            `count(*[_type == "encomenda" && data == $date && estado != "cancelada"])`,
+            { date: isoDate }
+          ),
+          writeClient.fetch<{ maxEncomendas?: number }>(
+            `*[_type == "deliveryInfo" && _id == "deliveryInfo"][0]{ maxEncomendas }`
+          ),
+          writeClient.fetch<number>(
+            `count(*[_type == "blockedDate" && date == $date])`,
+            { date: isoDate }
+          ),
+        ]);
+        const max = deliverySettings?.maxEncomendas ?? 2;
+        if (orderCount >= max && alreadyBlocked === 0) {
+          await writeClient.create({
+            _type: "blockedDate",
+            date: isoDate,
+            reason: "Lotacao esgotada (bloqueio automatico)",
+          });
+        }
+      } catch (err) {
+        console.error("Auto-block error:", err);
+      }
     })
     .catch((err) => console.error("Sanity write error:", err));
 
