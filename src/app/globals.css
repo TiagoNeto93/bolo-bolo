@@ -333,45 +333,38 @@ h1, h2, h3, h4, h5, h6 {
 
 .PhoneInput {
   display: flex;
-  gap: 0.5rem;
-}
-
-.PhoneInputCountrySelect {
-  flex-shrink: 0;
-  padding: 0.75rem 0.625rem;
-  border-radius: 0.75rem;
+  align-items: stretch;
   border: 1px solid var(--color-parchment);
+  border-radius: 0.75rem;
   background: var(--color-white);
-  color: var(--color-espresso);
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: border-color var(--duration-fast);
+  overflow: hidden;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
 }
 
-.PhoneInputCountrySelect:focus {
-  outline: none;
-  ring: 2px;
+.PhoneInput:focus-within {
   border-color: var(--color-terracotta);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-terracotta) 40%, transparent);
+}
+
+.PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--color-parchment);
 }
 
 .PhoneInputInput {
   flex: 1;
   padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--color-parchment);
-  background: var(--color-white);
+  border: none;
+  background: transparent;
   color: var(--color-espresso);
-  transition: border-color var(--duration-fast);
+  outline: none;
+  box-shadow: none;
+  min-width: 0;
 }
 
 .PhoneInputInput::placeholder {
   color: color-mix(in srgb, var(--color-warm-brown) 40%, transparent);
-}
-
-.PhoneInputInput:focus {
-  outline: none;
-  border-color: var(--color-terracotta);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-terracotta) 40%, transparent);
 }
 
 /* ─── Portable Text (About page) ─── */

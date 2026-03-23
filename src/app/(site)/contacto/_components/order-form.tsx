@@ -4,7 +4,52 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { pt } from "date-fns/locale";
-import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import PhoneInput, { isValidPhoneNumber, getCountryCallingCode } from "react-phone-number-input";
+import type { Country } from "react-phone-number-input";
+
+function flagEmoji(code: Country): string {
+  return code
+    .toUpperCase()
+    .split("")
+    .map((c) => String.fromCodePoint(127397 + c.charCodeAt(0)))
+    .join("");
+}
+
+function CountrySelect({
+  value,
+  onChange,
+  options,
+}: {
+  value: Country;
+  onChange: (v: Country) => void;
+  options: { value: Country | undefined; label: string }[];
+}) {
+  const calling = value ? getCountryCallingCode(value) : null;
+  return (
+    <div className="relative flex items-center gap-1 pl-3 pr-2 shrink-0 cursor-pointer">
+      <select
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value as Country)}
+        className="absolute inset-0 opacity-0 cursor-pointer"
+        aria-label="País"
+      >
+        {options.map((opt) => (
+          <option key={opt.value ?? "__blank"} value={opt.value ?? ""}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      <span className="text-base leading-none pointer-events-none select-none">
+        {value ? flagEmoji(value) : "🌐"}
+      </span>
+      {calling && (
+        <span className="text-sm text-warm-brown pointer-events-none select-none">
+          +{calling}
+        </span>
+      )}
+    </div>
+  );
+}
 
 registerLocale("pt", pt);
 
@@ -189,7 +234,7 @@ export function OrderForm({
             value={phoneValue}
             onChange={setPhoneValue}
             placeholder="912 345 678"
-            international
+            countrySelectComponent={CountrySelect}
           />
         ) : (
           <input
