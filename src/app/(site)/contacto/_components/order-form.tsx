@@ -54,6 +54,7 @@ export function OrderForm({
   const preselectedSize = searchParams.get("tamanho") ?? "";
 
   const [form, setForm] = useState({ nome: "", contacto: "", zona: "", notas: "" });
+  const [contactMode, setContactMode] = useState<"email" | "phone">("email");
   const [phoneValue, setPhoneValue] = useState<string | undefined>(undefined);
   const [items, setItems] = useState<OrderItem[]>([
     { produto: preselected, tamanho: preselectedSize },
@@ -92,10 +93,8 @@ export function OrderForm({
     return products.find((p) => p.name === productName)?.sizes ?? [];
   }
 
-  const isPhone = !form.contacto.includes("@");
-
   function validateContacto(): string | null {
-    if (isPhone) {
+    if (contactMode === "phone") {
       return phoneValue && isValidPhoneNumber(phoneValue)
         ? null
         : "Número de telemóvel inválido.";
@@ -106,7 +105,7 @@ export function OrderForm({
   }
 
   function getContactoValue(): string {
-    return isPhone ? (phoneValue ?? "") : form.contacto.trim();
+    return contactMode === "phone" ? (phoneValue ?? "") : form.contacto.trim();
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -168,7 +167,23 @@ export function OrderForm({
         <label className="block text-sm font-medium text-espresso mb-1.5">
           Email ou telemóvel <span className="text-terracotta">*</span>
         </label>
-        {isPhone ? (
+        <div className="flex gap-1 mb-2">
+          {(["email", "phone"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setContactMode(mode)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                contactMode === mode
+                  ? "bg-terracotta text-white"
+                  : "bg-parchment text-warm-brown hover:bg-parchment/70"
+              }`}
+            >
+              {mode === "email" ? "Email" : "Telemóvel"}
+            </button>
+          ))}
+        </div>
+        {contactMode === "phone" ? (
           <PhoneInput
             defaultCountry="PT"
             value={phoneValue}
@@ -178,12 +193,12 @@ export function OrderForm({
           />
         ) : (
           <input
-            type="text"
+            type="email"
             name="contacto"
             required
             value={form.contacto}
             onChange={handleChange}
-            placeholder="ana@email.com ou 912 345 678"
+            placeholder="ana@email.com"
             className={inputClass}
           />
         )}
