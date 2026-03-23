@@ -1,23 +1,21 @@
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 import { writeClient } from "@/lib/sanity/write-client";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Rate limiter — only active when Upstash env vars are set
-const ratelimit =
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-    ? new Ratelimit({
-        redis: new Redis({
-          url: process.env.UPSTASH_REDIS_REST_URL,
-          token: process.env.UPSTASH_REDIS_REST_TOKEN,
-        }),
-        limiter: Ratelimit.slidingWindow(3, "1 h"),
-        prefix: "bolo-bolo:encomenda",
-      })
-    : null;
+// In-memory rate limit: 3 requests per IP per hour
+// Resets on cold start — sufficient combined with the honeypot field
+const ipRequests = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const windowMs = 60 * 60 * 1000;
+  const max = 3;
+  const timestamps = (ipRequests.get(ip) ?? []).filter((t) => now - t < windowMs);
+  timestamps.push(now);
+  ipRequests.set(ip, timestamps);
+  return timestamps.length > max;
+}
 
 type OrderItem = { produto: string; tamanho: string };
 
@@ -29,16 +27,13 @@ function generateReferencia(): string {
 }
 
 export async function POST(req: NextRequest) {
-  // Rate limiting — by IP, 3 requests per hour
-  if (ratelimit) {
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous";
-    const { success } = await ratelimit.limit(ip);
-    if (!success) {
-      return NextResponse.json(
-        { error: "Demasiados pedidos. Tenta novamente mais tarde." },
-        { status: 429 }
-      );
-    }
+  // Rate limiting — by IP, 3 requests per hour (in-memory)
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous";
+  if (isRateLimited(ip)) {
+    return NextResponse.json(
+      { error: "Demasiados pedidos. Tenta novamente mais tarde." },
+      { status: 429 }
+    );
   }
 
   const body = await req.json();
