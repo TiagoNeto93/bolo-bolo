@@ -1,11 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getFeaturedProducts, getHomepageContent } from "@/lib/sanity/queries";
+import { getFeaturedProducts, getHomepageContent, getSpecialProducts } from "@/lib/sanity/queries";
 import { urlFor } from "@/lib/sanity/image";
 
 export default async function HomePage() {
-  const [featured, cms] = await Promise.all([
+  const [featured, specials, cms] = await Promise.all([
     getFeaturedProducts(),
+    getSpecialProducts(),
     getHomepageContent(),
   ]);
 
@@ -36,6 +37,73 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Seasonal specials */}
+      {specials.length > 0 && (
+        <section className="px-6 py-20 max-w-6xl mx-auto w-full">
+          <div className="text-center mb-12 stagger-children">
+            <p className="text-sm uppercase tracking-[0.25em] text-honey font-medium">
+              Edição limitada
+            </p>
+            <h2 className="mt-2 font-heading text-3xl md:text-4xl text-espresso">
+              Especiais da Época
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {specials.map((product: {
+              _id: string;
+              name: string;
+              slug: string;
+              description?: string;
+              image?: object;
+              category: string;
+              sizes?: { label: string; price: number }[];
+              etiqueta?: string;
+            }) => (
+              <Link
+                key={product._id}
+                href={`/produtos/${product.slug}`}
+                className="card-warm group block"
+              >
+                <div className="relative aspect-[4/3] bg-parchment overflow-hidden">
+                  {product.image ? (
+                    <Image
+                      src={urlFor(product.image).width(600).height(450).fit("crop").url()}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                      </svg>
+                    </div>
+                  )}
+                  <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-honey text-espresso shadow-sm">
+                    {product.etiqueta ?? "Destaque"}
+                  </span>
+                </div>
+                <div className="p-5">
+                  <h3 className="font-heading text-xl text-espresso group-hover:text-terracotta transition-colors duration-200">
+                    {product.name}
+                  </h3>
+                  {product.description && (
+                    <p className="mt-1 text-sm text-warm-brown line-clamp-2 opacity-80">
+                      {product.description}
+                    </p>
+                  )}
+                  <span className="mt-3 inline-block text-sm text-terracotta font-medium">
+                    Ver mais →
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Featured cakes */}
       {featured.length > 0 && (

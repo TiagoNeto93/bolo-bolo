@@ -85,7 +85,7 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 9 | Order management — persist enquiries in Sanity | DONE |
 | 10 | Rate limiting + honeypot spam protection | DONE |
 | 11 | Vercel Analytics | DONE |
-| 12 | Seasonal / featured specials | TODO |
+| 12 | Seasonal / featured specials | DONE |
 | 13 | Order status lookup | DONE |
 | 14 | Availability auto-block | DONE |
 | 15 | Customer confirmation email | DONE |
