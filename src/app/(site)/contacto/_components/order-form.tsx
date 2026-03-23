@@ -217,7 +217,11 @@ export function OrderForm({
             <button
               key={mode}
               type="button"
-              onClick={() => setContactMode(mode)}
+              onClick={() => {
+                setContactMode(mode);
+                setPhoneValue(undefined);
+                setForm((prev) => ({ ...prev, contacto: "" }));
+              }}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                 contactMode === mode
                   ? "bg-terracotta text-white"
