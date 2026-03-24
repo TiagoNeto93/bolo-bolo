@@ -92,6 +92,7 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 16 | CMS-managed copy — homepage hero, footer tagline, confirmation page | DONE |
 | 17 | Service simplification — replace Upstash with in-memory rate limiting | DONE |
 | 18 | Studio branding — brand theme, custom logo, nav icons | DONE |
+| 19 | Resend custom domain — configurable sender via env var | DONE |
 
 ### Slice 9 detail — Order management
 
