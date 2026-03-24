@@ -11,6 +11,7 @@ import {
   ImagesIcon,
   MarkerIcon,
   UserIcon,
+  WarningOutlineIcon,
 } from "@sanity/icons";
 import { schemaTypes } from "./src/lib/sanity/schemas";
 import { studioTheme } from "./src/lib/sanity/studio-theme";
@@ -42,10 +43,29 @@ export default defineConfig({
               .title("Encomendas")
               .icon(BasketIcon)
               .child(
-                S.documentTypeList("encomenda")
+                S.list()
                   .title("Encomendas")
-                  .defaultOrdering([{ field: "_createdAt", direction: "desc" }])
-                  .canHandleIntent((intent) => intent !== "create")
+                  .items([
+                    S.listItem()
+                      .title("Todas as encomendas")
+                      .icon(BasketIcon)
+                      .child(
+                        S.documentTypeList("encomenda")
+                          .title("Todas as encomendas")
+                          .defaultOrdering([{ field: "_createdAt", direction: "desc" }])
+                          .canHandleIntent((intent) => intent !== "create")
+                      ),
+                    S.listItem()
+                      .title("⚠ Requerem revisão")
+                      .icon(WarningOutlineIcon)
+                      .child(
+                        S.documentList()
+                          .title("Encomendas a rever")
+                          .filter('_type == "encomenda" && requerRevisao == true')
+                          .defaultOrdering([{ field: "_createdAt", direction: "desc" }])
+                          .canHandleIntent((intent) => intent !== "create")
+                      ),
+                  ])
               ),
 
             S.divider(),

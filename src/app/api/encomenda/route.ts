@@ -17,7 +17,15 @@ function isRateLimited(ip: string): boolean {
   return timestamps.length > max;
 }
 
-type OrderItem = { produto: string; tamanho: string };
+type OrderItem = { produto: string; tamanho: string; productId: string };
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 function generateReferencia(): string {
   const now = new Date();
@@ -47,6 +55,9 @@ export async function POST(req: NextRequest) {
     website: string; // honeypot — must be empty
   };
 
+  type SanityProduct = { _id: string; sizes: { label: string; price: number }[] };
+  type SanityZone = { zone: string; price: number };
+
   // Honeypot — bots fill hidden fields, humans don't
   if (website) {
     return NextResponse.json({ ok: true, referencia: "BB-00000000-0000" });
@@ -74,19 +85,57 @@ export async function POST(req: NextRequest) {
       })()
     : undefined;
 
-  // Pre-check: determine whether this order will hit the daily limit.
-  // Must run BEFORE the create to avoid Sanity's eventual-consistency lag
-  // (a count query immediately after a mutation may not see the new doc).
+  // Pre-check: fetch product prices + delivery settings (always), and date capacity (when a date
+  // was given). Must run BEFORE the create to avoid Sanity's eventual-consistency lag.
   let shouldAutoBlock = false;
-  if (isoDate) {
-    try {
-      const [preCount, deliverySettings, alreadyBlocked] = await Promise.all([
+  let precoEntrega = 0;
+  let precoTotal: number | undefined;
+  let requerRevisao = false;
+  try {
+    // Always fetch products + delivery settings so pricing works even without a date
+    const [sanityProducts, deliverySettings] = await Promise.all([
+      writeClient.fetch<SanityProduct[]>(
+        `*[_type == "product"]{ _id, "sizes": sizes[]{ label, price } }`
+      ),
+      writeClient.fetch<{ maxEncomendas?: number; zones?: SanityZone[] }>(
+        `*[_type == "deliveryInfo" && _id == "deliveryInfo"][0]{ maxEncomendas, zones }`
+      ),
+    ]);
+
+    // Compute server-side prices — look up by productId (immutable), not name
+    for (const item of validItems) {
+      const product = sanityProducts.find((p) => p._id === item.productId);
+      const size = product?.sizes?.find((s) => s.label === item.tamanho);
+      (item as OrderItem & { preco?: number }).preco = size?.price;
+    }
+    const zonePrice = deliverySettings?.zones?.find((z) => z.zone === zona)?.price ?? 0;
+    const itemsTotal = validItems.reduce(
+      (sum, item) => sum + ((item as OrderItem & { preco?: number }).preco ?? 0),
+      0
+    );
+    precoEntrega = zonePrice;
+    // Only store a total if at least one item had a known price — avoids storing €0 for
+    // products that have no sizes defined yet
+    const hasKnownPrice = validItems.some(
+      (item) => (item as OrderItem & { preco?: number }).preco != null
+    );
+    if (hasKnownPrice) precoTotal = itemsTotal + zonePrice;
+
+    // Flag orders that need manual review:
+    // - a productId didn't match any known product
+    // - total couldn't be computed (products have no sizes defined)
+    // - total is €0 (suspicious — may indicate missing or incorrect pricing)
+    const hasUnknownProduct = validItems.some(
+      (item) => item.productId && !sanityProducts.some((p) => p._id === item.productId)
+    );
+    requerRevisao = hasUnknownProduct || precoTotal == null || precoTotal === 0;
+
+    // Auto-block check — only needed when a date was given
+    if (isoDate) {
+      const [preCount, alreadyBlocked] = await Promise.all([
         writeClient.fetch<number>(
           `count(*[_type == "encomenda" && data == $date && estado != "cancelada"])`,
           { date: isoDate }
-        ),
-        writeClient.fetch<{ maxEncomendas?: number }>(
-          `*[_type == "deliveryInfo" && _id == "deliveryInfo"][0]{ maxEncomendas }`
         ),
         writeClient.fetch<number>(
           `count(*[_type == "blockedDate" && date == $date])`,
@@ -95,9 +144,9 @@ export async function POST(req: NextRequest) {
       ]);
       const max = deliverySettings?.maxEncomendas ?? 2;
       shouldAutoBlock = preCount + 1 >= max && alreadyBlocked === 0;
-    } catch (err) {
-      console.error("Auto-block pre-check error:", err);
     }
+  } catch (err) {
+    console.error("Pre-check error:", err);
   }
 
   // Write to Sanity — non-blocking: log error but don't fail the request
@@ -112,9 +161,15 @@ export async function POST(req: NextRequest) {
       zona: zona || undefined,
       items: validItems.map((item) => ({
         _key: Math.random().toString(36).slice(2, 10),
-        ...item,
+        produto: item.produto,
+        tamanho: item.tamanho,
+        productId: item.productId || undefined,
+        preco: (item as OrderItem & { preco?: number }).preco,
       })),
       notas: notas || undefined,
+      precoEntrega: precoEntrega > 0 ? precoEntrega : undefined,
+      precoTotal: precoTotal,
+      requerRevisao: requerRevisao || undefined,
     })
     .then(async () => {
       if (!shouldAutoBlock || !isoDate) return;
@@ -130,14 +185,21 @@ export async function POST(req: NextRequest) {
     })
     .catch((err) => console.error("Sanity write error:", err));
 
+  const safeNome = escapeHtml(nome);
+  const safeData = data ? escapeHtml(data) : null;
+  const safeZona = zona ? escapeHtml(zona) : null;
+  const safeNotas = notas ? escapeHtml(notas) : null;
+  const safeContacto = escapeHtml(contacto);
+
   const itemsHtml = validItems
-    .map(
-      (item) =>
-        `<tr>
-          <td style="padding: 6px 12px 6px 0; color: #3B2314; font-weight: bold;">${item.produto}</td>
-          <td style="padding: 6px 0; color: #5C3D2E;">${item.tamanho || "—"}</td>
-        </tr>`
-    )
+    .map((item) => {
+      const preco = (item as OrderItem & { preco?: number }).preco;
+      return `<tr>
+          <td style="padding: 6px 12px 6px 0; color: #3B2314; font-weight: bold;">${escapeHtml(item.produto)}</td>
+          <td style="padding: 6px 12px 6px 0; color: #5C3D2E;">${item.tamanho ? escapeHtml(item.tamanho) : "—"}</td>
+          <td style="padding: 6px 0; color: #3B2314; text-align: right;">${preco != null ? `€${preco}` : "—"}</td>
+        </tr>`;
+    })
     .join("");
 
   const { error } = await resend.emails.send({
@@ -152,21 +214,21 @@ export async function POST(req: NextRequest) {
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
             <td style="padding: 8px 0; color: #5C3D2E; font-size: 13px; width: 120px; vertical-align: top;">Nome</td>
-            <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${nome}</td>
+            <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${safeNome}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #5C3D2E; font-size: 13px; vertical-align: top;">Contacto</td>
-            <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${contacto}</td>
+            <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${safeContacto}</td>
           </tr>
-          ${data ? `
+          ${safeData ? `
           <tr>
             <td style="padding: 8px 0; color: #5C3D2E; font-size: 13px; vertical-align: top;">Data desejada</td>
-            <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${data}</td>
+            <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${safeData}</td>
           </tr>` : ""}
-          ${zona ? `
+          ${safeZona ? `
           <tr>
             <td style="padding: 8px 0; color: #5C3D2E; font-size: 13px; vertical-align: top;">Zona de entrega</td>
-            <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${zona}</td>
+            <td style="padding: 8px 0; color: #3B2314; font-weight: bold;">${safeZona}</td>
           </tr>` : ""}
         </table>
 
@@ -176,17 +238,20 @@ export async function POST(req: NextRequest) {
           <thead>
             <tr style="background: #EDE4D3;">
               <th style="padding: 8px 12px 8px 0; color: #5C3D2E; font-size: 12px; text-align: left; font-weight: 600;">Bolo</th>
-              <th style="padding: 8px 0; color: #5C3D2E; font-size: 12px; text-align: left; font-weight: 600;">Tamanho</th>
+              <th style="padding: 8px 12px 8px 0; color: #5C3D2E; font-size: 12px; text-align: left; font-weight: 600;">Tamanho</th>
+              <th style="padding: 8px 0; color: #5C3D2E; font-size: 12px; text-align: right; font-weight: 600;">Preço</th>
             </tr>
           </thead>
           <tbody style="padding: 8px;">
             ${itemsHtml}
+            ${precoEntrega > 0 ? `<tr><td colspan="2" style="padding: 6px 12px 6px 0; color: #5C3D2E; font-size: 13px;">Entrega (${safeZona})</td><td style="padding: 6px 0; color: #3B2314; text-align: right;">€${precoEntrega}</td></tr>` : ""}
+            ${precoTotal != null ? `<tr style="border-top: 1px solid #EDE4D3;"><td colspan="2" style="padding: 8px 12px 8px 0; color: #3B2314; font-weight: bold;">Total</td><td style="padding: 8px 0; color: #C4653A; font-weight: bold; font-size: 15px; text-align: right;">€${precoTotal}</td></tr>` : ""}
           </tbody>
         </table>` : ""}
 
-        ${notas ? `
+        ${safeNotas ? `
         <h2 style="color: #3B2314; font-size: 16px; margin: 24px 0 8px;">Notas</h2>
-        <p style="color: #3B2314; margin: 0; background: white; padding: 12px; border-radius: 8px;">${notas}</p>` : ""}
+        <p style="color: #3B2314; margin: 0; background: white; padding: 12px; border-radius: 8px;">${safeNotas}</p>` : ""}
 
         <hr style="border: none; border-top: 1px solid #EDE4D3; margin: 24px 0;" />
         <p style="color: #5C3D2E; font-size: 13px; margin: 0;">Responde diretamente a esta encomenda pelo WhatsApp ou email.</p>
@@ -203,6 +268,16 @@ export async function POST(req: NextRequest) {
   if (contacto.includes("@")) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://bolo-bolo.pt";
     const statusUrl = `${siteUrl}/encomenda/${referencia}`;
+    const customerItemsHtml = validItems
+      .map((item) => {
+        const preco = (item as OrderItem & { preco?: number }).preco;
+        return `<tr>
+          <td style="padding: 5px 12px 5px 0; color: #3B2314;">${escapeHtml(item.produto)}</td>
+          <td style="padding: 5px 12px 5px 0; color: #5C3D2E;">${item.tamanho ? escapeHtml(item.tamanho) : "—"}</td>
+          <td style="padding: 5px 0; color: #3B2314; text-align: right;">${preco != null ? `€${preco}` : "—"}</td>
+        </tr>`;
+      })
+      .join("");
     const mensagemExtra = await writeClient
       .fetch<{ emailMensagemExtra?: string }>(
         `*[_type == "homepage" && _id == "homepage"][0]{ emailMensagemExtra }`
@@ -220,8 +295,23 @@ export async function POST(req: NextRequest) {
           <hr style="border: none; border-top: 1px solid #EDE4D3; margin: 0 0 24px;" />
           <h1 style="color: #3B2314; font-size: 22px; margin: 0 0 12px;">A tua encomenda foi recebida!</h1>
           <p style="color: #5C3D2E; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
-            Olá ${nome}, obrigada pela tua encomenda. Já a recebi e vou entrar em contacto contigo em breve pelo WhatsApp ou email para confirmarmos tudo ao pormenor.
+            Olá ${safeNome}, obrigada pela tua encomenda. Já a recebi e vou entrar em contacto contigo em breve pelo WhatsApp ou email para confirmarmos tudo ao pormenor.
           </p>
+          ${validItems.length > 0 ? `
+          <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; margin: 0 0 20px;">
+            <thead>
+              <tr style="background: #EDE4D3;">
+                <th style="padding: 8px 12px 8px 0; color: #5C3D2E; font-size: 12px; text-align: left; font-weight: 600;">Bolo</th>
+                <th style="padding: 8px 12px 8px 0; color: #5C3D2E; font-size: 12px; text-align: left; font-weight: 600;">Tamanho</th>
+                <th style="padding: 8px 0; color: #5C3D2E; font-size: 12px; text-align: right; font-weight: 600;">Preço</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${customerItemsHtml}
+              ${precoEntrega > 0 ? `<tr><td colspan="2" style="padding: 5px 12px 5px 0; color: #5C3D2E; font-size: 13px;">Entrega (${safeZona})</td><td style="padding: 5px 0; color: #3B2314; text-align: right;">€${precoEntrega}</td></tr>` : ""}
+              ${precoTotal != null ? `<tr style="border-top: 1px solid #EDE4D3;"><td colspan="2" style="padding: 8px 12px 8px 0; color: #3B2314; font-weight: bold;">Total</td><td style="padding: 8px 0; color: #C4653A; font-weight: bold; font-size: 15px; text-align: right;">€${precoTotal}</td></tr>` : ""}
+            </tbody>
+          </table>` : ""}
           <div style="background: white; border-radius: 10px; padding: 16px 20px; margin: 0 0 24px;">
             <p style="color: #5C3D2E; font-size: 13px; margin: 0 0 4px;">A tua referência</p>
             <p style="color: #3B2314; font-size: 22px; font-weight: bold; letter-spacing: 0.05em; margin: 0;">${referencia}</p>

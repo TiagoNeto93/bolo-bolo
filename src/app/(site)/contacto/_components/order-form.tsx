@@ -65,6 +65,7 @@ type Product = {
 type OrderItem = {
   produto: string;
   tamanho: string;
+  productId: string;
 };
 
 const inputClass =
@@ -102,7 +103,11 @@ export function OrderForm({
   const [contactMode, setContactMode] = useState<"email" | "phone">("email");
   const [phoneValue, setPhoneValue] = useState<string | undefined>(undefined);
   const [items, setItems] = useState<OrderItem[]>([
-    { produto: preselected, tamanho: preselectedSize },
+    {
+      produto: preselected,
+      tamanho: preselectedSize,
+      productId: products.find((p) => p.name === preselected)?._id ?? "",
+    },
   ]);
   const [data, setData] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
@@ -119,15 +124,18 @@ export function OrderForm({
     setItems((prev) =>
       prev.map((item, i) => {
         if (i !== index) return item;
-        // Reset size when product changes
-        if (field === "produto") return { produto: value, tamanho: "" };
+        // Reset size and update productId when product changes
+        if (field === "produto") {
+          const productId = products.find((p) => p.name === value)?._id ?? "";
+          return { produto: value, tamanho: "", productId };
+        }
         return { ...item, [field]: value };
       })
     );
   }
 
   function addItem() {
-    setItems((prev) => [...prev, { produto: "", tamanho: "" }]);
+    setItems((prev) => [...prev, { produto: "", tamanho: "", productId: "" }]);
   }
 
   function removeItem(index: number) {
@@ -137,6 +145,25 @@ export function OrderForm({
   function getSizes(productName: string): Size[] {
     return products.find((p) => p.name === productName)?.sizes ?? [];
   }
+
+  function computeTotal(): number | null {
+    let total = 0;
+    let hasAnyPrice = false;
+    for (const item of items) {
+      if (!item.produto) continue;
+      const sizes = getSizes(item.produto);
+      if (sizes.length === 0) continue; // product has no prices defined
+      const size = sizes.find((s) => s.label === item.tamanho);
+      if (size == null) return null; // size not yet chosen
+      total += size.price;
+      hasAnyPrice = true;
+    }
+    if (!hasAnyPrice) return null;
+    const zonePrice = zones.find((z) => z.zone === form.zona)?.price ?? 0;
+    return total + zonePrice;
+  }
+
+  const total = computeTotal();
 
   function validateContacto(): string | null {
     if (contactMode === "phone") {
@@ -389,6 +416,13 @@ export function OrderForm({
           className={`${inputClass} resize-none`}
         />
       </div>
+
+      {total != null && (
+        <div className="flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-parchment">
+          <span className="text-sm font-medium text-espresso">Total estimado</span>
+          <span className="text-lg font-bold text-espresso">€{total}</span>
+        </div>
+      )}
 
       {error && (
         <p className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl">
