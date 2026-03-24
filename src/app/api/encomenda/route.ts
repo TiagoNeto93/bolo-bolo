@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
     .join("");
 
   const { error } = await resend.emails.send({
-    from: "Bolo-Bolo <onboarding@resend.dev>",
+    from: process.env.RESEND_FROM_EMAIL!,
     to: process.env.BAKER_EMAIL!,
     subject: `Nova encomenda ${referencia}${firstProduct ? ` — ${firstProduct}` : ""}`,
     html: `
@@ -210,7 +210,7 @@ export async function POST(req: NextRequest) {
       .then((r) => r?.emailMensagemExtra ?? null)
       .catch(() => null);
     resend.emails.send({
-      from: "Bolo-Bolo <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM_EMAIL!,
       to: contacto,
       subject: `Encomenda recebida — ${referencia}`,
       html: `
