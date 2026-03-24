@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <filter id="icing-shadow" x="-10%" y="-20%" width="120%" height="180%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#8B4513" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  <rect width="100" height="100" rx="22" fill="#FDF6EE"/>
+  <!-- bottom tier -->
+  <rect x="14" y="64" width="72" height="21" rx="8" fill="#C2694E"/>
+  <!-- frosting drip on bottom tier -->
+  <path d="M15 69 Q16 75 20 75 Q24 75 25 69 L34 69 Q36 77 42 77 Q48 77 49 69 L57 69 Q59 75 63 75 Q67 75 68 69 L77 69 Q78 75 82 75 Q85 75 85 69 Q86 66 85 63 Q84 60 81 60 Q60 58 50 59 Q28 58 17 60 Q14 61 14 64 Q14 68 15 69 Z" fill="#FFF8F0" filter="url(#icing-shadow)"/>
+  <!-- top tier -->
+  <rect x="24" y="38" width="52" height="26" rx="8" fill="#D4821A"/>
+  <!-- frosting drip on top tier -->
+  <path d="M25 43 Q26 48 30 48 Q34 48 35 43 L43 43 Q45 51 50 51 Q55 51 57 43 L65 43 Q66 48 70 48 Q74 48 75 43 Q76 40 75 36 Q73 33 70 33 Q60 31 50 32 Q40 31 30 33 Q25 35 24 38 Q24 42 25 43 Z" fill="#FFF8F0" filter="url(#icing-shadow)"/>
+  <!-- sprinkles -->
+  <rect x="31" y="36" width="6" height="2" rx="1" fill="#5C3A1E" transform="rotate(-30 34 37)"/>
+  <rect x="41" y="35" width="6" height="2" rx="1" fill="#5C3A1E" transform="rotate(20 44 36)"/>
+  <rect x="52" y="37" width="6" height="2" rx="1" fill="#5C3A1E" transform="rotate(-45 55 38)"/>
+  <rect x="61" y="35" width="6" height="2" rx="1" fill="#5C3A1E" transform="rotate(15 64 36)"/>
+  <rect x="36" y="39" width="5" height="2" rx="1" fill="#5C3A1E" transform="rotate(40 38 40)"/>
+  <rect x="57" y="37" width="5" height="2" rx="1" fill="#5C3A1E" transform="rotate(-20 59 38)"/>
+  <!-- cherry -->
+  <circle cx="50" cy="27" r="7" fill="#C2694E"/>
+  <!-- cherry highlight -->
+  <circle cx="47" cy="24" r="2.5" fill="white" opacity="0.5"/>
+</svg>
