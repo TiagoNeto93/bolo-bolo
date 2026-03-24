@@ -224,6 +224,18 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | Testimonials section | Baker adds quotes in Sanity; displayed on homepage. Simple schema + component. |
 | FAQ page (`/faq`) | Allergens, lead time, delivery, payment questions. Sanity-managed. Reduces WhatsApp noise. |
 
+## Open questions / decisions deferred
+
+### Should the delivery date be required on the order form?
+
+Currently `data` (delivery date) is **optional** on `/contacto`. The hint text reads "Confirmarei disponibilidade via WhatsApp", implying the baker sorts out the final date in conversation.
+
+**Arguments for keeping it optional:** lower friction for the customer; baker confirms date anyway via WhatsApp.
+
+**Arguments for making it required:** prevents ambiguous orders with no delivery context; the auto-block and availability logic only runs when a date is present; `requerRevisao` gets set for orders with no resolvable total, not for missing dates specifically.
+
+If made required: add `*` to the label in `order-form.tsx` and a `if (!data) { setError("..."); return; }` guard in `handleSubmit`. No API changes needed.
+
 ---
 
 ## Future Architecture Notes
