@@ -125,7 +125,8 @@ export async function getEncomendaByReferencia(referencia: string) {
       referencia,
       estado,
       nome,
-      data
+      data,
+      precoTotal
     }`,
     { referencia }
   );

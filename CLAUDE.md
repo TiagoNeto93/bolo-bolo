@@ -93,6 +93,7 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 | 17 | Service simplification — replace Upstash with in-memory rate limiting | DONE |
 | 18 | Studio branding — brand theme, custom logo, nav icons | DONE |
 | 19 | Resend custom domain — configurable sender via env var | DONE |
+| 20 | Order total amount — server-side pricing, stored on encomenda, shown in emails and status page | DONE |
 
 ### Slice 9 detail — Order management
 

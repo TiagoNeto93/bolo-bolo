@@ -103,6 +103,12 @@ export default async function EncomendaStatusPage({
                 {dataFormatada}
               </p>
             )}
+            {encomenda.precoTotal != null && (
+              <p>
+                <span className="text-espresso font-medium">Total:</span>{" "}
+                €{encomenda.precoTotal}
+              </p>
+            )}
           </div>
         </div>
 
