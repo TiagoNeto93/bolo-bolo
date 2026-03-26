@@ -223,6 +223,7 @@ We build in **vertical slices**: each slice delivers a complete, working feature
 |---------|-------|
 | Testimonials section | Baker adds quotes in Sanity; displayed on homepage. Simple schema + component. |
 | FAQ page (`/faq`) | Allergens, lead time, delivery, payment questions. Sanity-managed. Reduces WhatsApp noise. |
+| Order status change emails | When baker updates `estado` in Studio, send a customer email via Resend (only if `contacto` contains `@` — phone-only customers use WhatsApp instead). Use a Sanity webhook → `/api/webhooks/encomenda`. Only notify on meaningful transitions: `confirmada` and `entregue`. Critical for email-only customers who have no WhatsApp channel. |
 
 ## Open questions / decisions deferred
 
