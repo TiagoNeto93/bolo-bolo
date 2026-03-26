@@ -316,6 +316,10 @@ Code patterns and decisions we've committed to. Grows as we build.
 - The direct URL `/route/opengraph-image` does NOT work for dynamic routes — Next.js serves OG images at an internal hashed URL. The `og:image` meta tag in the page `<head>` is correctly populated; verify with `curl -s <page-url> | grep og:image` rather than visiting the image URL directly
 - `NEXT_PUBLIC_SITE_URL` must be set in Vercel environment variables to the production domain (e.g. `https://bolo-bolo.pt`) for canonical URLs, sitemap, robots, and OG `metadataBase` to resolve correctly
 
+### Environment variables
+- Never read `.env` or `.env.local` directly — these contain real secrets
+- All env file reads, writes, and examples must go through `.env.local.example` only
+
 ### Copy
 - All UI text in Portuguese, informal "tu" register
 - First person singular ("eu", "mim") not plural ("nos")
